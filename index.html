@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mafatlal Digital Team Task Tracker</title>
+  <meta name="description" content="Unified work management platform integrated with Microsoft 365" />
+  <link rel="icon" type="image/svg+xml" href="assets/img/mafatlal-shield.svg" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Top command bar -->
+    <header class="command-bar" id="commandBar">
+      <div class="cb-left">
+        <button class="icon-btn nav-toggle" id="navToggle" title="Toggle navigation" aria-label="Toggle navigation">
+          <span data-icon="menu"></span>
+        </button>
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="assets/img/mafatlal-shield-white.svg" alt="Mafatlal" />
+          </span>
+          <span class="brand-name">Mafatlal Digital <span class="brand-light">Team Task Tracker</span></span>
+        </div>
+      </div>
+
+      <div class="cb-search">
+        <span data-icon="search" class="search-icon"></span>
+        <input type="text" id="globalSearch" placeholder="Search tasks, projects, people…" aria-label="Search" />
+        <kbd>Ctrl /</kbd>
+      </div>
+
+      <div class="cb-right">
+        <button class="cb-action" id="newTaskBtn">
+          <span data-icon="add"></span><span class="lbl">New Task</span>
+        </button>
+        <button class="icon-btn" id="aiBtn" title="AI Assistant"><span data-icon="sparkle"></span></button>
+        <button class="icon-btn" id="themeToggle" title="Toggle theme"><span data-icon="theme"></span></button>
+        <button class="icon-btn notif-btn" id="notifBtn" title="Notifications">
+          <span data-icon="bell"></span><span class="notif-dot" id="notifDot"></span>
+        </button>
+        <button class="avatar-btn" id="profileBtn" title="Account">
+          <span class="avatar" style="--c:#0078D4">·</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <!-- Left navigation -->
+      <nav class="side-nav" id="sideNav" aria-label="Primary">
+        <div class="nav-section">
+          <div class="nav-label">Workspace</div>
+          <a class="nav-item" data-route="dashboard"><span data-icon="dashboard"></span><span class="nav-text">Dashboard</span></a>
+          <a class="nav-item" data-route="tasks"><span data-icon="tasks"></span><span class="nav-text">My Tasks</span><span class="nav-badge" id="navTaskCount"></span></a>
+          <a class="nav-item" data-route="board"><span data-icon="board"></span><span class="nav-text">Board</span></a>
+          <a class="nav-item" data-route="calendar"><span data-icon="calendar"></span><span class="nav-text">Calendar</span></a>
+          <a class="nav-item" data-route="timeline"><span data-icon="timeline"></span><span class="nav-text">Timeline &amp; Gantt</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-label">Operate</div>
+          <a class="nav-item" data-route="team" data-admin="true"><span data-icon="users"></span><span class="nav-text">Team</span></a>
+          <a class="nav-item" data-route="approvals"><span data-icon="approve"></span><span class="nav-text">Approvals</span><span class="nav-badge alert" id="navApprovalCount"></span></a>
+          <a class="nav-item" data-route="corpcomm"><span data-icon="megaphone"></span><span class="nav-text">Corp Comm</span></a>
+          <a class="nav-item" data-route="documents"><span data-icon="doc"></span><span class="nav-text">Documents</span></a>
+          <a class="nav-item" data-route="reports"><span data-icon="report"></span><span class="nav-text">Reports</span></a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-label">Marketing</div>
+          <a class="nav-item" data-route="analytics"><span data-icon="report"></span><span class="nav-text">Analytics</span></a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-label">Intelligence</div>
+          <a class="nav-item" data-route="ai"><span data-icon="sparkle"></span><span class="nav-text">AI Assistant</span></a>
+          <a class="nav-item" data-route="integrations"><span data-icon="plug"></span><span class="nav-text">Microsoft 365</span></a>
+          <a class="nav-item" data-route="settings"><span data-icon="settings"></span><span class="nav-text">Settings</span></a>
+        </div>
+
+        <div class="nav-foot">
+          <div class="sync-pill" id="syncPill">
+            <span class="sync-dot"></span>
+            <div>
+              <div class="sync-title">Microsoft 365</div>
+              <div class="sync-sub">Synced just now</div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Main content -->
+      <main class="content" id="content" tabindex="-1"></main>
+    </div>
+  </div>
+
+  <!-- Right side task pane -->
+  <div class="pane-scrim" id="paneScrim"></div>
+  <aside class="task-pane" id="taskPane" aria-label="Task details"></aside>
+
+  <!-- Generic modal -->
+  <div class="modal-scrim" id="modalScrim">
+    <div class="modal" id="modal" role="dialog" aria-modal="true"></div>
+  </div>
+
+  <!-- Notifications flyout -->
+  <div class="flyout" id="notifFlyout" hidden></div>
+
+  <!-- Toast region -->
+  <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+
+  <!-- Scripts (no build step, no modules — runs from file://) -->
+  <script src="src/data.js"></script>
+  <script src="src/store.js"></script>
+  <script src="src/msgraph/auth.js"></script>
+  <script src="src/msgraph/graph.js"></script>
+  <script src="src/charts.js"></script>
+  <script src="src/components.js"></script>
+  <script src="src/accounts.js"></script>
+  <script src="src/login.js"></script>
+  <script src="src/views/dashboard.js"></script>
+  <script src="src/views/team.js"></script>
+  <script src="src/views/analytics.js"></script>
+  <script src="src/views/tasks.js"></script>
+  <script src="src/views/board.js"></script>
+  <script src="src/views/calendar.js"></script>
+  <script src="src/views/timeline.js"></script>
+  <script src="src/views/approvals.js"></script>
+  <script src="src/views/corpcomm.js"></script>
+  <script src="src/views/documents.js"></script>
+  <script src="src/views/reports.js"></script>
+  <script src="src/views/ai.js"></script>
+  <script src="src/views/integrations.js"></script>
+  <script src="src/views/settings.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>

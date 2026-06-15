@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mafatlal Digital Team Task Tracker — Create Task</title>
+<!-- Office.js is required when running inside Outlook -->
+<script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+<style>
+  :root{--blue:#0078d4;--blue-h:#106ebe;--text:#201f1e;--text2:#605e5c;--text3:#a19f9d;
+    --stroke:#e1dfdd;--bg:#faf9f8;--surface:#fff;--ok:#107c10;--r:6px;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Inter,sans-serif;font-size:13px;color:var(--text);background:var(--bg)}
+  .head{background:var(--blue);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:9px}
+  .head svg{flex-shrink:0}
+  .head b{font-size:14px}
+  .wrap{padding:14px 16px 20px}
+  .email{background:var(--surface);border:1px solid var(--stroke);border-left:3px solid var(--blue);
+    border-radius:var(--r);padding:10px 12px;margin-bottom:14px}
+  .email .from{font-weight:600}
+  .email .subj{color:var(--text2);font-size:12px;margin-top:2px}
+  .email .prev{color:var(--text3);font-size:12px;margin-top:6px;max-height:54px;overflow:hidden}
+  label{display:block;font-size:11px;font-weight:600;color:var(--text2);margin:10px 0 4px}
+  input,select,textarea{width:100%;border:1px solid #d2d0ce;border-radius:var(--r);padding:7px 9px;
+    font-family:inherit;font-size:13px;background:var(--surface);outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+  textarea{resize:vertical;min-height:54px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .check{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--text2)}
+  .check input{width:auto;accent-color:var(--blue)}
+  button.primary{width:100%;margin-top:16px;background:var(--blue);color:#fff;border:0;border-radius:var(--r);
+    padding:10px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+  button.primary:hover{background:var(--blue-h)}
+  .done{display:none;text-align:center;padding:40px 16px}
+  .done .ic{width:52px;height:52px;border-radius:50%;background:rgba(16,124,16,.12);color:var(--ok);
+    display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px}
+  .done b{display:block;font-size:15px;margin-bottom:6px}
+  .done span{color:var(--text2);font-size:12px;line-height:1.5}
+  .note{font-size:11px;color:var(--text3);margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+  <div class="head">
+    <svg viewBox="0 0 32 32" width="22" height="22"><rect width="32" height="32" rx="7" fill="#fff" opacity=".2"/><path d="M9 16l4 4 10-10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <b>Task Tracker — Create Task</b>
+  </div>
+
+  <div class="wrap" id="form">
+    <div class="email">
+      <div class="from" id="emFrom">—</div>
+      <div class="subj" id="emSubj">—</div>
+      <div class="prev" id="emPrev"></div>
+    </div>
+
+    <label>Task name</label>
+    <input id="fName" placeholder="Task name"/>
+
+    <label>Notes</label>
+    <textarea id="fDesc" placeholder="Context for the assignee…"></textarea>
+
+    <div class="row">
+      <div>
+        <label>Assignee</label>
+        <select id="fAssignee">
+          <option value="suniti@mafatlals.com">Suniti</option>
+          <option value="yash@mafatlals.com">Yash</option>
+          <option value="ishita@mafatlals.com">Ishita</option>
+          <option value="karan@mafatlals.com">Karan</option>
+          <option value="aditya@mafatlals.com">Aditya</option>
+          <option value="suresh@mafatlals.com">Suresh</option>
+          <option value="sushil@mafatlals.com">Sushil</option>
+          <option value="hiya@mafatlals.com">Hiya</option>
+          <option value="mohit@mafatlals.com">Mohit</option>
+        </select>
+      </div>
+      <div>
+        <label>Priority</label>
+        <select id="fPriority">
+          <option>Critical</option><option>High</option>
+          <option selected>Medium</option><option>Low</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Due date</label>
+        <input type="date" id="fDue"/>
+      </div>
+      <div>
+        <label>Department</label>
+        <select id="fDept">
+          <option>Marketing</option><option>Corporate Communications</option>
+          <option>HR</option><option>Sales</option><option>Operations</option>
+          <option>Manufacturing</option><option>IT</option><option>Management</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="check"><input type="checkbox" id="fAttach" checked/> Attach this email conversation</div>
+    <div class="check"><input type="checkbox" id="fCal" checked/> Sync deadline to Outlook Calendar</div>
+
+    <button class="primary" id="createBtn">✓ Create task</button>
+    <div class="note" id="modeNote"></div>
+  </div>
+
+  <div class="done" id="done">
+    <span class="ic"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+    <b>Task created</b>
+    <span id="doneSub"></span>
+  </div>
+
+<script>
+(function () {
+  var insideOutlook = false;
+
+  function el(id) { return document.getElementById(id); }
+
+  function prefillFromItem(item) {
+    el('emFrom').textContent = (item.from && item.from.displayName) || 'Unknown sender';
+    el('emSubj').textContent = item.subject || '(no subject)';
+    el('fName').value = item.subject || '';
+    if (item.getBodyAsync) {
+      item.getBodyAsync('text', function (res) {
+        if (res.status === 'succeeded') {
+          var prev = (res.value || '').trim().slice(0, 220);
+          el('emPrev').textContent = prev;
+          el('fDesc').value = prev;
+        }
+      });
+    }
+  }
+
+  function prefillDemo() {
+    el('emFrom').textContent = 'Yash <yash@mafatlals.com>';
+    el('emSubj').textContent = 'Need updated pricing sheet for West zone distributors';
+    el('emPrev').textContent = 'Hi team, the West zone distributors are asking for the revised FY26 pricing sheet. Can someone prepare and send this by Friday?';
+    el('fName').value = 'Need updated pricing sheet for West zone distributors';
+    el('fDesc').value = 'West zone distributors are asking for the revised FY26 pricing sheet — blocking two onboarding deals.';
+    el('modeNote').textContent = 'Demo preview — open inside Outlook (sideload manifest.xml) to read the live email.';
+  }
+
+  function defaultDue() {
+    var d = new Date(); d.setDate(d.getDate() + 5);
+    el('fDue').value = d.toISOString().slice(0, 10);
+  }
+
+  function create() {
+    var task = {
+      name: el('fName').value || 'Untitled task',
+      desc: el('fDesc').value,
+      assignee: el('fAssignee').value,
+      priority: el('fPriority').value,
+      due: el('fDue').value,
+      dept: el('fDept').value,
+      attachEmail: el('fAttach').checked,
+      calendarSync: el('fCal').checked,
+      source: 'outlook-addin',
+      createdAt: new Date().toISOString(),
+    };
+    // PRODUCTION: POST this to your Task Tracker backend API, e.g.
+    //   fetch('https://your-api/tasks', {method:'POST', body: JSON.stringify(task), ...})
+    // Demo: persist locally so the main app could pick it up.
+    try {
+      var box = JSON.parse(localStorage.getItem('fd-addin-tasks') || '[]');
+      box.push(task);
+      localStorage.setItem('fd-addin-tasks', JSON.stringify(box));
+    } catch (e) {}
+
+    el('form').style.display = 'none';
+    el('done').style.display = 'block';
+    el('doneSub').innerHTML = 'Assigned to <b>' + el('fAssignee').selectedOptions[0].text + '</b> · ' +
+      task.priority + ' priority · due ' + task.due +
+      (task.calendarSync ? '<br/>Deadline synced to Outlook Calendar' : '') +
+      (task.attachEmail ? '<br/>Email conversation attached' : '');
+  }
+
+  el('createBtn').onclick = create;
+  defaultDue();
+
+  if (window.Office && Office.onReady) {
+    Office.onReady(function (info) {
+      if (info.host === Office.HostType.Outlook && Office.context.mailbox && Office.context.mailbox.item) {
+        insideOutlook = true;
+        prefillFromItem(Office.context.mailbox.item);
+      } else {
+        prefillDemo();
+      }
+    });
+    // If Office.js loads but never calls onReady (plain browser), fall back.
+    setTimeout(function () { if (!insideOutlook && el('emFrom').textContent === '—') prefillDemo(); }, 1500);
+  } else {
+    prefillDemo();
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Mafatlal Digital Team Task Tracker — Outlook Add-in manifest (task pane, message read surface).
+
+  BEFORE SIDELOADING:
+  1. Replace every occurrence of  https://flowdesk.example.com  with the
+     HTTPS URL where you host this repo (Outlook requires HTTPS, even in dev —
+     e.g. an Azure Static Web App, SharePoint, or https://localhost with a
+     dev certificate).
+  2. Sideload: Outlook on the web → Get Add-ins → My add-ins →
+     Add a custom add-in → Add from file → pick this manifest.xml.
+  See docs/AZURE_SETUP.md for the full walkthrough.
+-->
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:mailappor="http://schemas.microsoft.com/office/mailappversionoverrides/1.0"
+  xsi:type="MailApp">
+
+  <Id>7f4d1c2e-9b3a-4e5f-8a6d-2c1b0e9f7a35</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Mafatlal Digital</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="Mafatlal Digital Task Tracker"/>
+  <Description DefaultValue="Create, assign and track Mafatlal Digital Team Task Tracker tasks directly from Outlook email."/>
+  <IconUrl DefaultValue="https://flowdesk.example.com/outlook-addin/assets/icon-64.png"/>
+  <HighResolutionIconUrl DefaultValue="https://flowdesk.example.com/outlook-addin/assets/icon-128.png"/>
+  <SupportUrl DefaultValue="https://flowdesk.example.com"/>
+
+  <AppDomains>
+    <AppDomain>https://flowdesk.example.com</AppDomain>
+  </AppDomains>
+
+  <Hosts>
+    <Host Name="Mailbox"/>
+  </Hosts>
+
+  <Requirements>
+    <Sets>
+      <Set Name="Mailbox" MinVersion="1.5"/>
+    </Sets>
+  </Requirements>
+
+  <FormSettings>
+    <Form xsi:type="ItemRead">
+      <DesktopSettings>
+        <SourceLocation DefaultValue="https://flowdesk.example.com/outlook-addin/taskpane.html"/>
+        <RequestedHeight>480</RequestedHeight>
+      </DesktopSettings>
+    </Form>
+  </FormSettings>
+
+  <Permissions>ReadWriteItem</Permissions>
+
+  <Rule xsi:type="RuleCollection" Mode="Or">
+    <Rule xsi:type="ItemIs" ItemType="Message" FormType="Read"/>
+  </Rule>
+
+  <DisableEntityHighlighting>false</DisableEntityHighlighting>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/mailappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Requirements>
+      <bt:Sets DefaultMinVersion="1.5">
+        <bt:Set Name="Mailbox"/>
+      </bt:Sets>
+    </Requirements>
+
+    <Hosts>
+      <Host xsi:type="MailHost">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="MessageReadCommandSurface">
+            <OfficeTab id="TabDefault">
+              <Group id="fdGroup">
+                <Label resid="fdGroupLabel"/>
+                <Control xsi:type="Button" id="fdOpenPane">
+                  <Label resid="fdBtnLabel"/>
+                  <Supertip>
+                    <Title resid="fdBtnLabel"/>
+                    <Description resid="fdBtnTip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="icon16"/>
+                    <bt:Image size="32" resid="icon32"/>
+                    <bt:Image size="80" resid="icon80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <SourceLocation resid="taskpaneUrl"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="icon16" DefaultValue="https://flowdesk.example.com/outlook-addin/assets/icon-16.png"/>
+        <bt:Image id="icon32" DefaultValue="https://flowdesk.example.com/outlook-addin/assets/icon-32.png"/>
+        <bt:Image id="icon80" DefaultValue="https://flowdesk.example.com/outlook-addin/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="taskpaneUrl" DefaultValue="https://flowdesk.example.com/outlook-addin/taskpane.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="fdGroupLabel" DefaultValue="Task Tracker"/>
+        <bt:String id="fdBtnLabel" DefaultValue="Create Task"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="fdBtnTip" DefaultValue="Turn this email into a Task Tracker task — assign it, set priority and due date without leaving Outlook."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

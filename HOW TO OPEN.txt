@@ -1,0 +1,57 @@
+========================================================
+  Mafatlal Digital Team Task Tracker - How to open
+========================================================
+
+You have TWO ways to open the Tracker. Pick ONE and stick
+with it (accounts/passwords are saved per method).
+
+
+--------------------------------------------------------
+  OPTION A  (EASIEST - no server, works every time)
+--------------------------------------------------------
+
+  1. Open the "Team management" folder in File Explorer.
+  2. Double-click  index.html
+  3. It opens in your browser. Sign in. Done.
+
+  Nothing to keep running. Bookmark it if you like.
+
+  TIP: If it opens in the wrong program, right-click
+  index.html -> Open with -> Google Chrome / Microsoft Edge.
+
+
+--------------------------------------------------------
+  OPTION B  (if you want a http://localhost URL)
+--------------------------------------------------------
+
+  1. Double-click  Start-Task-Tracker.bat
+  2. A blue window opens - LEAVE IT OPEN.
+  3. Your browser opens to  http://localhost:8777/
+
+  The address  http://localhost:8777/  only works while
+  that blue window is open. If you close it, the page
+  will stop loading - just run the .bat again.
+
+
+--------------------------------------------------------
+  WHY YOUR TAB SHOWED NOTHING
+--------------------------------------------------------
+
+  http://localhost:8777 only responds while the server
+  (the blue window from Option B) is running. If that
+  window was closed, the URL has nothing to connect to.
+
+  Use Option A to avoid this completely.
+
+
+--------------------------------------------------------
+  SIGN IN
+--------------------------------------------------------
+
+  Admin:  digital@mafatlals.com   password:  Admin@2026
+
+  Team members sign in with their name + starter password
+  (e.g. Suniti / Suniti@123). On first sign-in they are
+  asked to fill in their own name, designation and dept.
+  The full list is in README.md.
+========================================================
