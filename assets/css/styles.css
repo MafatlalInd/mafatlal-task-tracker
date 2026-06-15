@@ -248,7 +248,9 @@ a { color: inherit; text-decoration: none; cursor: pointer; }
 .cols-3 { grid-template-columns: repeat(3, 1fr); }
 .cols-12 { grid-template-columns: 2fr 1fr; }
 @media (max-width: 1180px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } .cols-3, .cols-12 { grid-template-columns: 1fr; } }
-@media (max-width: 760px) { .kpi-grid, .cols-2 { grid-template-columns: 1fr; } }
+@media (max-width: 760px) { .cols-2 { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 360px) { .kpi-grid { grid-template-columns: 1fr; } }
 
 /* KPI card */
 .kpi { background: var(--bg-surface); border: 1px solid var(--stroke); border-radius: var(--radius-lg); padding: 16px 18px; position: relative; overflow: hidden; }
@@ -494,10 +496,84 @@ a { color: inherit; text-decoration: none; cursor: pointer; }
 .pm-item:hover { background: var(--bg-hover); }
 .pm-item svg { width: 16px; height: 16px; color: var(--text-2); }
 
-/* responsive */
+/* ============================================================
+   Responsive / mobile optimization
+   ============================================================ */
+/* Prevent any element from forcing the page wider than the screen */
+img, svg, table, video, canvas { max-width: 100%; }
+
+/* ---- Tablet & below: nav becomes a drawer + compact, scrollable content ---- */
 @media (max-width: 900px) {
-  .side-nav { position: fixed; left: 0; top: var(--bar-h); bottom: 0; z-index: 45; transform: translateX(-100%); transition: transform .2s; box-shadow: var(--shadow-16); }
+  .side-nav { position: fixed; left: 0; top: var(--bar-h); bottom: 0; z-index: 45; transform: translateX(-100%); transition: transform .2s; box-shadow: var(--shadow-16); width: 260px; }
   .app-body.nav-open .side-nav { transform: translateX(0); }
-  .cb-left { min-width: auto; } .cb-right { min-width: auto; }
+  .app-body.nav-open::before { content: ""; position: fixed; left: 0; right: 0; top: var(--bar-h); bottom: 0; background: rgba(0,0,0,.45); z-index: 44; }
+
+  .cb-left { min-width: auto; } .cb-right { min-width: auto; gap: 2px; }
   .cb-search { display: none; }
+  .brand-light { display: none; }            /* show just "Mafatlal Digital" */
+  .cb-action .lbl { display: none; }          /* New Task → icon only */
+  .cb-action { padding: 0 9px; }
+  #aiBtn { display: none; }                    /* AI shortcut lives in the nav */
+  .flyout { right: 8px; left: 8px; width: auto; }
+  .profile-menu { right: 8px; }
+
+  /* compact page chrome */
+  .page { padding: 18px 16px 48px; }
+  .page-title { font-size: 21px; }
+  .page-head { gap: 10px; margin-bottom: 16px; }
+  .page-sub { font-size: 12px; }
+
+  /* cards contain wide content; tables scroll inside them */
+  .card { overflow-x: auto; }
+  #bestMemberProfile { overflow: visible; }
+  .tbl-wrap { overflow-x: auto; }
+  .tbl th, .tbl td { white-space: nowrap; }
+  .tbl .t-name { max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+  .tbl thead th, .tbl tbody td { padding: 9px 12px; }
+
+  /* filter toolbars wrap & stretch */
+  .toolbar { gap: 8px; }
+  .toolbar .select, .toolbar .search-box { flex: 1 1 150px; }
+  .search-box { width: auto; }
+  .search-box input { width: 100%; }
+
+  /* segmented controls scroll horizontally instead of overflowing */
+  .seg { max-width: 100%; overflow-x: auto; }
+  .seg button { white-space: nowrap; flex: 0 0 auto; }
+
+  /* gantt: narrower label rail */
+  .gantt-label { width: 150px; }
+}
+
+/* ---- Phones ---- */
+@media (max-width: 600px) {
+  .page { padding: 14px 12px 52px; }
+  .page-title { font-size: 20px; }
+  .kpi { padding: 13px 14px; }
+  .kpi-val { font-size: 23px; }
+  .tbl .t-name { max-width: 200px; }
+
+  /* kanban columns fit the viewport (swipe between them) */
+  .kcol { width: 82vw; max-width: 320px; max-height: none; }
+
+  /* calendar stays readable via horizontal scroll */
+  #calBody { overflow-x: auto; }
+  .cal-grid { min-width: 560px; }
+  .cal-cell { min-height: 90px; }
+
+  .gantt-label { width: 132px; }
+  .gantt-month { min-width: 66px; }
+  .page-actions { width: 100%; }
+  .page-actions .btn, .page-actions .seg { flex: 1 1 auto; justify-content: center; }
+}
+
+/* ---- Small phones ---- */
+@media (max-width: 430px) {
+  .field-row { grid-template-columns: 1fr; }        /* stack paired inputs */
+  .cols-2 .card, .cols-3 .card { min-width: 0; }
+  .kpi-val { font-size: 21px; }
+  .task-pane { width: 100%; max-width: 100%; }
+  .modal { border-radius: 12px; }
+  .legend { gap: 10px; }
+  .pane-foot { flex-wrap: wrap; }
 }

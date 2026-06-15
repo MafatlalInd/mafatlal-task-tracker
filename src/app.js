@@ -132,11 +132,19 @@
     document.getElementById('themeToggle').onclick = toggleTheme;
     document.getElementById('notifBtn').onclick = (e) => UI.toggleNotifications(e.currentTarget);
     document.getElementById('profileBtn').onclick = toggleProfileMenu;
-    document.getElementById('navToggle').onclick = () => {
+    document.getElementById('navToggle').onclick = (e) => {
+      e.stopPropagation();
       const body = document.querySelector('.app-body');
       if (window.innerWidth <= 900) body.classList.toggle('nav-open');
       else body.classList.toggle('nav-collapsed');
     };
+    // Close the mobile nav drawer when tapping outside it
+    document.addEventListener('click', (e) => {
+      const body = document.querySelector('.app-body');
+      if (window.innerWidth > 900 || !body.classList.contains('nav-open')) return;
+      const nav = document.getElementById('sideNav');
+      if (nav && !nav.contains(e.target)) body.classList.remove('nav-open');
+    });
 
     wireSearch();
 
