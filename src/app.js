@@ -10,7 +10,7 @@
     dashboard: 'Dashboard', tasks: 'Tasks', board: 'Board', calendar: 'Calendar',
     timeline: 'Timeline', team: 'Team', approvals: 'Approvals', corpcomm: 'Corp Comm',
     documents: 'Documents', reports: 'Reports', analytics: 'Marketing Analytics',
-    ai: 'AI Assistant', integrations: 'Microsoft 365', settings: 'Settings',
+    influencers: 'Influencers', ai: 'AI Assistant', integrations: 'Microsoft 365', settings: 'Settings',
   };
   const ADMIN_ONLY = { team: true };
 

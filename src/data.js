@@ -249,10 +249,19 @@
     { label: "W6", created: 0, completed: 0 },
   ];
 
+  // Influencer directory — details + collaboration charges (₹), per platform.
+  const influencers = [
+    { id: "inf1", name: "Aisha Khanna", platform: "Instagram", handle: "@aisha.styles", url: "", category: "Fashion & Lifestyle", followers: 185000, email: "aisha.collab@example.com", phone: "+91 98200 11223", rateAmount: 45000, rateUnit: "Reel", status: "Active", managedBy: "u8", notes: "Strong festive-fashion engagement." },
+    { id: "inf2", name: "Rohan Reviews", platform: "YouTube", handle: "RohanReviews", url: "", category: "Tech & Reviews", followers: 420000, email: "team@rohanreviews.in", phone: "", rateAmount: 120000, rateUnit: "Video", status: "Active", managedBy: "u1", notes: "Long-form product features." },
+    { id: "inf3", name: "Sara Kapoor", platform: "Instagram", handle: "@sara.home", url: "", category: "Home & Decor", followers: 96000, email: "sara.home@example.com", phone: "+91 99300 44556", rateAmount: 28000, rateUnit: "Post", status: "Prospect", managedBy: "u8", notes: "Good fit for Mafatlal Home." },
+    { id: "inf4", name: "Vikram Fit", platform: "Instagram", handle: "@vikram.fitness", url: "", category: "Fitness & Wellness", followers: 240000, email: "vikram@example.com", phone: "", rateAmount: 60000, rateUnit: "Reel", status: "Past", managedBy: "u1", notes: "Worked on summer activewear." },
+    { id: "inf5", name: "Neha Trends", platform: "Facebook", handle: "NehaTrends", url: "", category: "Fashion", followers: 130000, email: "neha@example.com", phone: "+91 90040 88990", rateAmount: 35000, rateUnit: "Post", status: "Active", managedBy: "u10", notes: "" },
+  ];
+
   window.FD_DATA = {
     TODAY, iso, departments, users, projects, tasks, recurringTemplates,
     meetings, emails, notifications, documents, commItems, aiMeeting,
-    completionTrend, marketing, PRI, STATUS,
+    completionTrend, marketing, influencers, PRI, STATUS,
     analyticsConnectors: [
       { id: "ga4", name: "Google Analytics 4", desc: "Website traffic, users & conversions", icon: "report", color: "#e37400", status: "available", hint: "Measurement ID (G-XXXXXXX) + GA Data API" },
       { id: "gsc", name: "Google Search Console", desc: "Search clicks, impressions & rankings", icon: "search", color: "#4285f4", status: "available", hint: "Verified site property + Search Console API" },
