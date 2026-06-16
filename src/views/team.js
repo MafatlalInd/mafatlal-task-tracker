@@ -19,6 +19,7 @@
           <div><h1 class="page-title">Team</h1><div class="page-sub">${members.length} members · tasks, progress &amp; assignments</div></div>
           <div class="page-actions">
             <select class="select" id="teamDept"><option value="all">All departments</option>${FD.data.departments.map((d) => `<option value="${d.id}">${d.name}</option>`).join('')}</select>
+            <button class="btn" id="teamAddMember">${UI.icon('users')} Add member</button>
             <button class="btn primary" id="teamAssign">${UI.icon('add')} Assign a task</button>
           </div>
         </div>
@@ -26,6 +27,7 @@
       </div>`;
     UI.hydrateIcons(root);
     root.querySelector('#teamAssign').onclick = () => UI.openTaskPane();
+    root.querySelector('#teamAddMember').onclick = () => window.FD_VIEWS.settings.addMemberModal(root);
     root.querySelector('#teamDept').onchange = (e) => paint(root, e.target.value);
     paint(root, 'all');
     FD.on('tasks:changed', () => { if (document.body.contains(root)) paint(root, root.querySelector('#teamDept').value); });

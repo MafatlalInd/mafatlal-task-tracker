@@ -181,6 +181,7 @@
     UI.hydrateIcons(document);
 
     // local accounts gate
+    window.FD_ACCOUNTS.loadCustomMembers();
     await window.FD_ACCOUNTS.ensureSeeded();
     window.FD_ACCOUNTS.applyProfiles();
     const sess = window.FD_ACCOUNTS.session();

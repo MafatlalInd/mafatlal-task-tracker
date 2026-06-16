@@ -21,7 +21,8 @@
         ${amAdmin ? `
         <div class="card" style="margin-bottom:16px">
           <div class="card-head"><div><div class="card-title">${UI.icon('users')} Team Accounts</div>
-            <div class="card-sub">You are the administrator — you can reset any member's password</div></div></div>
+            <div class="card-sub">You are the administrator — add members and reset passwords</div></div>
+            <button class="btn primary sm" id="addMember">${UI.icon('add')} Add member</button></div>
           <table class="tbl" style="border:0"><thead><tr><th>Member</th><th>Email</th><th>Department</th><th>Designation</th><th>Profile</th><th>Password</th><th></th></tr></thead><tbody>
             ${FD.data.users.map((u) => `<tr>
               <td><div style="display:flex;gap:8px;align-items:center">${UI.avatar(u.id, 'sm')}<b>${u.name}</b> ${u.isAdmin ? '<span class="lt-admin">Admin</span>' : ''}</div></td>
@@ -31,7 +32,8 @@
               <td>${window.FD_ACCOUNTS.isProfileComplete(u.id) ? '<span class="badge pri-Low">Complete</span>' : '<span class="badge pri-Medium">Pending</span>'}</td>
               <td>${window.FD_ACCOUNTS.isDefaultPassword(u.id) ? '<span class="badge pri-Medium">Starter</span>' : '<span class="badge pri-Low">Changed</span>'}</td>
               <td style="white-space:nowrap"><button class="btn subtle sm" data-edit="${u.id}">${UI.icon('edit')} Edit</button>
-                <button class="btn sm" data-reset="${u.id}">${UI.icon('shield')} Reset password</button></td>
+                <button class="btn sm" data-reset="${u.id}">${UI.icon('shield')} Reset password</button>
+                ${u.custom ? `<button class="btn danger sm" data-removemember="${u.id}" title="Remove member">${UI.icon('trash')}</button>` : ''}</td>
             </tr>`).join('')}
           </tbody></table>
         </div>` : `
@@ -91,8 +93,11 @@
     if (myPw) myPw.onclick = changePasswordModal;
     const myProfile = root.querySelector('#myProfile');
     if (myProfile) myProfile.onclick = () => profileModal(FD.state.currentUser);
+    const addMem = root.querySelector('#addMember');
+    if (addMem) addMem.onclick = () => addMemberModal(root);
     root.querySelectorAll('[data-reset]').forEach((b) => b.onclick = () => resetPasswordModal(b.getAttribute('data-reset'), root));
     root.querySelectorAll('[data-edit]').forEach((b) => b.onclick = () => profileModal(b.getAttribute('data-edit')));
+    root.querySelectorAll('[data-removemember]').forEach((b) => b.onclick = () => removeMemberConfirm(b.getAttribute('data-removemember'), root));
   }
 
   // Admin: set a new password for any member
@@ -115,6 +120,66 @@
             close();
             if (root) render(root);
           } catch (e) { UI.toast({ title: 'Could not reset', sub: e.message, kind: 'err' }); }
+        };
+      },
+    });
+  }
+
+  function refreshCurrent() {
+    const route = (location.hash || '#settings').slice(1);
+    window.FD_APP.go(route);
+  }
+
+  // Admin: add a brand-new team member account
+  function addMemberModal(root) {
+    if (!window.FD_ACCOUNTS.isAdmin()) { UI.toast({ title: 'Admins only', kind: 'err' }); return; }
+    UI.modal({
+      title: 'Add team member', width: 480,
+      body: `
+        <div class="banner info" style="margin-bottom:16px">${UI.icon('users')}
+          <div>Create a new account. Share the starting password with them — they can change it after their first sign-in.</div></div>
+        <div class="field"><label>Full name <span style="color:var(--critical)">*</span></label>
+          <input class="input" id="amName" placeholder="e.g. Rohan Shah" style="width:100%"/></div>
+        <div class="field"><label>Email (used to sign in) <span style="color:var(--critical)">*</span></label>
+          <input class="input" id="amEmail" placeholder="rohan@mafatlals.com" style="width:100%"/></div>
+        <div class="field-row">
+          <div class="field"><label>Designation</label><input class="input" id="amRole" placeholder="e.g. Marketing Executive" style="width:100%"/></div>
+          <div class="field"><label>Department</label><select class="select" id="amDept" style="width:100%">${FD.data.departments.map((d) => `<option value="${d.id}">${d.name}</option>`).join('')}</select></div>
+        </div>
+        <div class="field"><label>Starting password <span style="color:var(--critical)">*</span></label>
+          <input class="input" id="amPass" placeholder="min 6 characters" style="width:100%"/></div>`,
+      foot: `<button class="btn subtle" data-close>Cancel</button><button class="btn primary" id="amCreate">${UI.icon('add')} Create account</button>`,
+      onMount: (m, close) => {
+        m.querySelector('#amCreate').onclick = async () => {
+          try {
+            const user = await window.FD_ACCOUNTS.addTeamMember({
+              name: m.querySelector('#amName').value,
+              email: m.querySelector('#amEmail').value,
+              role: m.querySelector('#amRole').value,
+              dept: m.querySelector('#amDept').value,
+              password: m.querySelector('#amPass').value,
+            });
+            UI.toast({ title: 'Member added', sub: user.name + ' can now sign in with their email + password', kind: 'ok', icon: 'users' });
+            close();
+            refreshCurrent();
+          } catch (e) { UI.toast({ title: 'Could not add member', sub: e.message, kind: 'err' }); }
+        };
+      },
+    });
+  }
+
+  function removeMemberConfirm(userId, root) {
+    const u = FD.userById(userId);
+    UI.modal({
+      title: 'Remove member', width: 440,
+      body: `<p style="margin-top:0">Remove <b>${u.name}</b> (${u.email})? Their account and password will be deleted. Tasks already assigned to them will remain but show as unassigned.</p>`,
+      foot: `<button class="btn subtle" data-close>Cancel</button><button class="btn danger" id="rmGo">${UI.icon('trash')} Remove member</button>`,
+      onMount: (m, close) => {
+        m.querySelector('#rmGo').onclick = () => {
+          window.FD_ACCOUNTS.removeTeamMember(userId);
+          UI.toast({ title: 'Member removed', sub: u.name + ' no longer has access', kind: 'warn' });
+          close();
+          refreshCurrent();
         };
       },
     });
@@ -191,5 +256,5 @@
   }
 
   window.FD_VIEWS = window.FD_VIEWS || {};
-  window.FD_VIEWS.settings = { title: 'Settings', render, changePasswordModal, profileModal };
+  window.FD_VIEWS.settings = { title: 'Settings', render, changePasswordModal, profileModal, addMemberModal };
 })();

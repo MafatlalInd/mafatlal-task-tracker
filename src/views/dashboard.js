@@ -14,7 +14,6 @@
     const m = FD.metrics(scopeTasks);
     const depts = FD.deptStats();
     const workload = FD.workloadByUser();
-    const best = FD.bestMemberOfMonth();
     const myMeetings = FD.data.meetings.filter((mt) => (mt.attendees || []).indexOf(me.id) > -1 || mt.organizer === me.id);
     const todayMeetings = myMeetings.filter((mt) => mt.date === FD.data.iso(FD.data.TODAY));
 
@@ -51,7 +50,7 @@
             </div>`).join('')}
         </div>
 
-        ${bestMemberCard(best)}
+        ${bestMemberCard()}
 
         <div class="grid cols-12" style="margin:16px 0">
           <div class="card">
@@ -176,33 +175,40 @@
     </div>`;
   }
 
-  function bestMemberCard(best) {
-    if (!best) {
-      return `<div class="card" style="background:linear-gradient(120deg, rgba(255,185,0,.08), rgba(0,120,212,.05));border-color:rgba(255,185,0,.3)">
-        <div style="display:flex;align-items:center;gap:14px">
-          <span class="kpi-icon" style="background:rgba(255,185,0,.18);color:#c19c00;width:44px;height:44px">${UI.icon('flag')}</span>
-          <div><div class="card-title">⭐ Best Team Member of the Month</div>
-            <div class="muted" style="font-size:13px;margin-top:2px">Awarded automatically once tasks are completed this month. Keep going!</div></div>
-        </div></div>`;
+  function bestMemberCard() {
+    const month = FD.data.TODAY.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const ranked = FD.memberScores().filter((s) => s.completed > 0).sort((a, b) => b.score - a.score);
+    if (!ranked.length) {
+      return `<div class="eotm">
+        <div class="eotm-head"><span class="trophy">🏆</span> Team Member of the Month · ${month}</div>
+        <div class="eotm-body"><div class="muted" style="font-size:13px">The race is on! As tasks get completed this month, the leader is crowned here automatically. 🚀</div></div>
+      </div>`;
     }
-    const u = best.user;
-    return `<div class="card" id="bestMemberProfile" style="cursor:pointer;background:linear-gradient(120deg, rgba(255,185,0,.1), rgba(0,120,212,.06));border-color:rgba(255,185,0,.35)">
-      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <div style="position:relative">
-          <span class="av lg" style="background:${u.color};width:52px;height:52px;font-size:18px">${u.initials}</span>
-          <span style="position:absolute;bottom:-4px;right:-4px;font-size:18px">⭐</span>
+    const win = ranked[0], u = win.user;
+    const medals = ['🥇', '🥈', '🥉'];
+    return `<div class="eotm" id="bestMemberProfile" style="cursor:pointer">
+      <div class="eotm-head"><span class="trophy">🏆</span> Team Member of the Month · ${month}</div>
+      <div class="eotm-body">
+        <div class="eotm-winner">
+          <div class="eotm-avatar"><span class="eotm-crown">👑</span><span class="av" style="background:${u.color}">${u.initials}</span></div>
+          <div>
+            <div class="eotm-name">${u.name}</div>
+            <div class="eotm-role">${u.role} · ${FD.deptById(u.dept).name}</div>
+          </div>
         </div>
-        <div style="flex:1;min-width:180px">
-          <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#c19c00">Best Team Member of the Month</div>
-          <div style="font-size:18px;font-weight:700;margin-top:2px">${u.name}</div>
-          <div class="muted" style="font-size:12px">${u.role} · ${FD.deptById(u.dept).name}</div>
+        <div class="eotm-stats">
+          <div class="eotm-stat"><b style="color:var(--ok)">${win.completed}</b><span>Completed</span></div>
+          <div class="eotm-stat"><b>${win.onTime}</b><span>On time</span></div>
+          <div class="eotm-stat"><b style="color:var(--mafatlal-red)">${win.score}</b><span>Points</span></div>
         </div>
-        <div style="display:flex;gap:22px">
-          <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--ok)">${best.completed}</div><div class="muted" style="font-size:11px">Completed</div></div>
-          <div style="text-align:center"><div style="font-size:22px;font-weight:700">${best.rate}%</div><div class="muted" style="font-size:11px">Completion</div></div>
-          <div style="text-align:center"><div style="font-size:22px;font-weight:700;color:var(--mafatlal-red)">${best.score}</div><div class="muted" style="font-size:11px">Score</div></div>
-        </div>
-      </div></div>`;
+      </div>
+      ${ranked.length > 1 ? `<div class="eotm-podium">
+        ${ranked.slice(0, 3).map((s, i) => `<div class="eotm-rank ${i === 0 ? 'first' : ''}">
+          <span class="medal">${medals[i]}</span>${UI.avatar(s.user.id, 'sm')}
+          <div style="flex:1;min-width:0"><div class="rk-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.user.name}</div><div class="rk-score">${s.completed} done · ${s.score} pts</div></div>
+        </div>`).join('')}
+      </div>` : ''}
+    </div>`;
   }
 
   function attentionTasks() {

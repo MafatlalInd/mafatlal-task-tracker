@@ -143,9 +143,59 @@
     return !!(loadProfiles()[userId] || {}).complete;
   }
 
+  // ----- Team members added by the admin (persisted per browser) -----
+  const MEMBERS_KEY = "fd-members-v1";
+  const PALETTE = ["#0078d4", "#5b5fc7", "#ca5010", "#107c10", "#038387", "#8764b8", "#0099bc", "#c19c00", "#498205", "#0b6a6e", "#a4373a", "#5c2e91"];
+  function loadMembers() { try { return JSON.parse(localStorage.getItem(MEMBERS_KEY) || "[]"); } catch (e) { return []; } }
+  function saveMembers(a) { try { localStorage.setItem(MEMBERS_KEY, JSON.stringify(a)); } catch (e) {} }
+
+  // Append any admin-created members onto the roster (run at startup).
+  function loadCustomMembers() {
+    loadMembers().forEach((m) => { if (!window.FD.userById(m.id)) window.FD.data.users.push(m); });
+  }
+
+  function emailTaken(email) {
+    const e = (email || "").trim().toLowerCase();
+    return window.FD.data.users.some((u) => u.email.toLowerCase() === e);
+  }
+
+  async function addTeamMember(d) {
+    const users = window.FD.data.users;
+    if (!d.name || !d.name.trim()) throw new Error("Name is required");
+    if (!d.email || !d.email.trim()) throw new Error("Email is required");
+    if (emailTaken(d.email)) throw new Error("That email is already in use");
+    if (!d.password || d.password.length < 6) throw new Error("Password must be at least 6 characters");
+    let n = 11; while (users.find((u) => u.id === "u" + n)) n++;
+    const id = "u" + n;
+    const user = {
+      id, name: d.name.trim(), initials: initialsOf(d.name),
+      color: PALETTE[(n - 1) % PALETTE.length],
+      role: (d.role && d.role.trim()) || "Team Member",
+      dept: d.dept || "mkt", email: d.email.trim().toLowerCase(), custom: true,
+    };
+    users.push(user);
+    const members = loadMembers(); members.push(user); saveMembers(members);
+    await setPassword(id, d.password);
+    window.FD.emit("members:changed", id);
+    return user;
+  }
+
+  function removeTeamMember(id) {
+    const users = window.FD.data.users;
+    const u = window.FD.userById(id);
+    if (!u || u.isAdmin || !u.custom) return false;   // only admin-created members can be removed
+    const i = users.indexOf(u); if (i > -1) users.splice(i, 1);
+    saveMembers(loadMembers().filter((x) => x.id !== id));
+    const creds = load(); delete creds[id]; save(creds);
+    const profs = loadProfiles(); delete profs[id]; saveProfilesRaw(profs);
+    window.FD.emit("members:changed", id);
+    return true;
+  }
+
   window.FD_ACCOUNTS = {
     ensureSeeded, login, logout, session, setPassword, changeOwnPassword,
     isAdmin, isDefaultPassword, DEFAULT_PASSWORDS,
     applyProfiles, saveProfile, isProfileComplete,
+    loadCustomMembers, addTeamMember, removeTeamMember,
   };
 })();
