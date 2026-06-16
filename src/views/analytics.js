@@ -50,14 +50,15 @@
   function allAccounts() {
     let store = null;
     try { store = JSON.parse(localStorage.getItem(ACCTS_KEY)); } catch (e) {}
-    if (!store || !store.gsc) {
+    if (!store || !store.gsc || !store.metabiz) {
       store = store || {};
       if (!store.ga4) store.ga4 = M.gaAccounts.slice();
       if (!store.meta) store.meta = M.metaAccounts.slice();
       if (!store.gsc) store.gsc = M.gscAccounts.slice();
+      if (!store.metabiz) store.metabiz = M.metaBizAccounts.slice();
       saveAll(store);
     }
-    store.ga4 = store.ga4 || []; store.meta = store.meta || []; store.gsc = store.gsc || [];
+    store.ga4 = store.ga4 || []; store.meta = store.meta || []; store.gsc = store.gsc || []; store.metabiz = store.metabiz || [];
     return store;
   }
   function saveAll(s) { try { localStorage.setItem(ACCTS_KEY, JSON.stringify(s)); } catch (e) {} }
@@ -165,6 +166,7 @@
   function paintConnectors(root) {
     const nounOf = (conn, count) => conn === 'ga4' ? ('propert' + (count === 1 ? 'y' : 'ies'))
       : conn === 'gsc' ? ('site' + (count === 1 ? '' : 's'))
+      : conn === 'metabiz' ? ('Business account' + (count === 1 ? '' : 's'))
       : ('ad account' + (count === 1 ? '' : 's'));
     root.querySelector('#connBar').innerHTML = FD.data.analyticsConnectors.map((c) => {
       const count = accounts(c.id).length;
@@ -184,7 +186,8 @@
   const META = {
     ga4: { kind: 'Google Analytics property', tab: 'Website', tag: 'GA', idLabel: 'Measurement ID', idPlaceholder: 'G-XXXXXXXXXX', namePlaceholder: 'e.g. Mafatlal Blog', key: 'mid' },
     gsc: { kind: 'Search Console site', tab: 'Search', tag: 'GSC', idLabel: 'Site URL (property)', idPlaceholder: 'https://www.example.com/', namePlaceholder: 'e.g. blog.mafatlals.com', key: 'site' },
-    meta: { kind: 'Meta ad account', tab: 'Social', tag: 'META', idLabel: 'Ad Account ID', idPlaceholder: 'act_XXXXXXXXX', namePlaceholder: 'e.g. Mafatlal Exports — Meta Ads', key: 'acc' },
+    metabiz: { kind: 'Meta Business account (Page)', tab: 'Social', tag: 'PAGE', idLabel: 'Page / Business account ID', idPlaceholder: 'e.g. 1789045210 or @handle', namePlaceholder: 'e.g. Mafatlal Retail — Instagram', key: 'biz' },
+    meta: { kind: 'Meta ad account', tab: 'Campaigns', tag: 'ADS', idLabel: 'Ad Account ID', idPlaceholder: 'act_XXXXXXXXX', namePlaceholder: 'e.g. Mafatlal Exports — Meta Ads', key: 'acc' },
   };
 
   function manageModal(conn, root) {
@@ -244,7 +247,7 @@
   // ---- Account selector strip ----
   function acctSelector(conn, root) {
     const accs = accounts(conn), sel = selected(conn), cfg = META[conn];
-    const label = conn === 'ga4' ? 'Property' : conn === 'gsc' ? 'Site' : 'Ad account';
+    const label = conn === 'ga4' ? 'Property' : conn === 'gsc' ? 'Site' : conn === 'metabiz' ? 'Business account' : 'Ad account';
     const cur = accs.find((a) => a.id === sel) || {};
     return `<div class="toolbar" style="margin-bottom:14px">
       <label class="muted" style="font-size:12px;font-weight:600">${label}:</label>
@@ -316,39 +319,54 @@
     wireSelector(root, 'ga4');
   }
 
-  // ---- Social (Meta, multi-account) ----
+  // ---- Social (Meta Business accounts — organic post performance + history) ----
   function social(root) {
     const host = root.querySelector('#anBody');
-    if (!accounts('meta').length) { host.innerHTML = emptyConnect('meta', root); wireEmpty(host, 'meta', root); return; }
-    const fAcct = factor('meta'), f = fAcct * rangeFactor(), mt = M.metaNum, d = M.meta;
-    host.innerHTML = acctSelector('meta', root) + `
+    if (!accounts('metabiz').length) { host.innerHTML = emptyConnect('metabiz', root); wireEmpty(host, 'metabiz', root); return; }
+    const fAcct = factor('metabiz'), f = fAcct * rangeFactor(), mt = M.metaBizNum, d = M.meta;
+    const acctName = selected('metabiz') === 'all' ? 'All Business accounts' : (accounts('metabiz').find((a) => a.id === selected('metabiz')) || {}).name;
+    const fmtDate = (s) => new Date(s + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+    host.innerHTML = acctSelector('metabiz', root) + `
       <div class="grid cols-3" style="margin-bottom:16px">
         ${kpi('Reach', kshort(mt.reach * f), d.reach, 'var(--mafatlal-red)')}
         ${kpi('Engagement', kshort(mt.engagement * f), d.engagement)}
         ${kpi('Followers', num(mt.followers * fAcct), d.followers, 'var(--ok)')}
       </div>
+
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><div><div class="card-title">Post Performance Over Time</div><div class="card-sub">Past 6 months · ${acctName}</div></div>
+          <div class="legend"><span class="legend-item"><span class="sw" style="background:var(--mafatlal-red)"></span>Reach</span><span class="legend-item"><span class="sw" style="background:var(--teams)"></span>Engagement</span></div></div>
+        ${C.line({ height: 180, labels: M.postTrend.map((x) => x.label),
+          series: [
+            { points: M.postTrend.map((x) => Math.round(x.reach * fAcct)), color: css('--mafatlal-red'), fill: true },
+            { points: M.postTrend.map((x) => Math.round(x.eng * fAcct * 12)), color: css('--teams'), fill: true },
+          ] })}
+        <div class="muted" style="font-size:11px;text-align:center;margin-top:6px">Engagement plotted ×12 for readability against reach.</div>
+      </div>
+
       <div class="grid cols-12" style="margin-bottom:16px">
         <div class="card">
-          <div class="card-head"><div class="card-title">Top Posts</div><div class="card-sub">Meta — Facebook &amp; Instagram</div></div>
-          <table class="tbl" style="border:0"><thead><tr><th>Post</th><th>Type</th><th>Reach</th><th>Engagement</th></tr></thead><tbody>
-            ${M.meta.posts.map((p) => `<tr><td class="t-name">${p.title}</td><td><span class="chip">${p.type}</span></td>
-              <td>${num(p.reach * f)}</td><td>${num(p.eng * f)}</td></tr>`).join('')}
+          <div class="card-head"><div><div class="card-title">Post History</div><div class="card-sub">Recent posts &amp; their performance</div></div></div>
+          <table class="tbl" style="border:0"><thead><tr><th>Date</th><th>Post</th><th>Type</th><th>Reach</th><th>Engagement</th></tr></thead><tbody>
+            ${M.pastPosts.map((p) => `<tr><td class="muted" style="white-space:nowrap">${fmtDate(p.date)}</td>
+              <td class="t-name">${p.title}</td><td><span class="chip">${p.type}</span></td>
+              <td>${num(p.reach * fAcct)}</td><td>${num(p.eng * fAcct)}</td></tr>`).join('')}
           </tbody></table>
         </div>
         <div class="card">
           <div class="card-head"><div class="card-title">Follower Growth</div></div>
           ${C.bars({ height: 180, data: M.meta.growth.map((g) => ({ label: g.label, value: Math.round(g.value * fAcct), color: css('--teams') })), fmt: (v) => (v / 1000).toFixed(1) + 'k' })}
-          <div class="muted" style="font-size:12px;text-align:center;margin-top:8px">${selected('meta') === 'all' ? 'Combined across ' + accounts('meta').length + ' ad accounts' : (accounts('meta').find((a) => a.id === selected('meta')) || {}).name}</div>
+          <div class="muted" style="font-size:12px;text-align:center;margin-top:8px">${acctName}</div>
         </div>
       </div>`;
     UI.hydrateIcons(host);
-    wireSelector(root, 'meta');
+    wireSelector(root, 'metabiz');
   }
 
   function emptyConnect(conn, root) {
     const c = connector(conn);
-    const thing = conn === 'ga4' ? 'Google Analytics properties' : conn === 'gsc' ? 'Search Console sites' : 'Meta ad accounts';
-    const seeing = conn === 'ga4' ? 'website traffic' : conn === 'gsc' ? 'search performance' : 'social performance';
+    const thing = conn === 'ga4' ? 'Google Analytics properties' : conn === 'gsc' ? 'Search Console sites' : conn === 'metabiz' ? 'Meta Business accounts' : 'Meta ad accounts';
+    const seeing = conn === 'ga4' ? 'website traffic' : conn === 'gsc' ? 'search performance' : conn === 'metabiz' ? 'social post performance' : 'ad performance';
     return `<div class="card"><div class="empty">${UI.icon(c.icon)}
       <div style="font-weight:600;color:var(--text-2)">No ${thing} yet</div>
       <div style="font-size:12px;margin:6px 0 14px">Add one to start seeing ${seeing}.</div>

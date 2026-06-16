@@ -205,6 +205,33 @@
       { id: "gsc2", name: "shop.mafatlals.com", site: "https://shop.mafatlals.com/", share: 0.30 },
       { id: "gsc3", name: "Monsoon microsite", site: "https://monsoon.mafatlals.com/", share: 0.12 },
     ],
+    // Meta Business accounts (Facebook Pages / Instagram) — organic post performance.
+    metaBizNum: { reach: 184000, engagement: 12400, followers: 48200 },
+    metaBizAccounts: [
+      { id: "fbpg", name: "Mafatlal — Facebook Page", biz: "1789045210", share: 0.46 },
+      { id: "igpg", name: "Mafatlal — Instagram", biz: "@mafatlal_official", share: 0.40 },
+      { id: "fbhome", name: "Mafatlal Home — Facebook", biz: "2204117788", share: 0.14 },
+    ],
+    // Past performance — monthly post reach/engagement trend.
+    postTrend: [
+      { label: "Jan", reach: 96000, eng: 6100 },
+      { label: "Feb", reach: 112000, eng: 7300 },
+      { label: "Mar", reach: 134000, eng: 8800 },
+      { label: "Apr", reach: 151000, eng: 10200 },
+      { label: "May", reach: 168000, eng: 11400 },
+      { label: "Jun", reach: 184000, eng: 12400 },
+    ],
+    // Past performance — individual posts with dates.
+    pastPosts: [
+      { date: "2026-06-08", title: "Monsoon launch reel", type: "Reel", reach: 62400, eng: 4820 },
+      { date: "2026-06-02", title: "Sustainability milestone", type: "Post", reach: 38100, eng: 2940 },
+      { date: "2026-05-26", title: "Behind the scenes — mill", type: "Story", reach: 24600, eng: 1810 },
+      { date: "2026-05-18", title: "Festive teaser", type: "Reel", reach: 19800, eng: 1560 },
+      { date: "2026-05-09", title: "New collection carousel", type: "Carousel", reach: 28700, eng: 2210 },
+      { date: "2026-04-27", title: "Customer spotlight", type: "Post", reach: 15400, eng: 1180 },
+      { date: "2026-04-15", title: "Heritage story — 1905", type: "Reel", reach: 41200, eng: 3360 },
+      { date: "2026-03-30", title: "Eco-fabric explainer", type: "Post", reach: 17900, eng: 1290 },
+    ],
   };
 
   // Completion trend buckets (filled in live from real tasks by the store).
@@ -224,7 +251,8 @@
     analyticsConnectors: [
       { id: "ga4", name: "Google Analytics 4", desc: "Website traffic, users & conversions", icon: "report", color: "#e37400", status: "available", hint: "Measurement ID (G-XXXXXXX) + GA Data API" },
       { id: "gsc", name: "Google Search Console", desc: "Search clicks, impressions & rankings", icon: "search", color: "#4285f4", status: "available", hint: "Verified site property + Search Console API" },
-      { id: "meta", name: "Meta (Facebook & Instagram)", desc: "Reach, engagement & follower growth", icon: "megaphone", color: "#0866ff", status: "available", hint: "Meta Business page + Graph API token" },
+      { id: "metabiz", name: "Meta Business Suite", desc: "Organic social post & page performance", icon: "megaphone", color: "#1877f2", status: "available", hint: "Facebook Page / Instagram Business account + Graph API token" },
+      { id: "meta", name: "Meta Ads", desc: "Paid campaign reach & spend", icon: "bolt", color: "#0866ff", status: "available", hint: "Meta Business ad account + Graph API token" },
     ],
     integrations: [
       { id: "outlook", name: "Microsoft Outlook", desc: "Email-to-task, reminders, escalations", status: "connected", icon: "outlook", color: "#0078d4", lastSync: "Just now" },
