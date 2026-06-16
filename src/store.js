@@ -98,7 +98,11 @@
     const t = getTask(id);
     if (!t) return;
     const prevStatus = t.status;
+    const prevAssignee = t.assignee;
     Object.assign(t, patch);
+    if (patch.assignee && patch.assignee !== prevAssignee) {
+      emit("task:reassigned", { task: t, from: prevAssignee });
+    }
     if (patch.status && patch.status !== prevStatus) {
       if (patch.status === "Completed") { t.progress = 100; t.completedOn = data.iso(data.TODAY); }
       graphHooks.onStatusChanged(t, prevStatus);

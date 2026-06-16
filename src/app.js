@@ -42,6 +42,15 @@
     document.getElementById('navTaskCount').textContent = myTasks || '';
     const ap = FD.approvalsQueue().length;
     document.getElementById('navApprovalCount').textContent = ap || '';
+    refreshNotifBadge();
+  }
+
+  function refreshNotifBadge() {
+    const dot = document.getElementById('notifDot');
+    if (!dot || !window.FD_NOTIF) return;
+    const n = window.FD_NOTIF.unreadCount(FD.state.currentUser);
+    if (n > 0) { dot.style.display = 'flex'; dot.textContent = n > 9 ? '9+' : String(n); dot.classList.add('count'); }
+    else { dot.style.display = 'none'; dot.textContent = ''; }
   }
 
   // ---- Global search ----
@@ -150,10 +159,18 @@
 
     // keep badges + dependent views fresh
     FD.on('tasks:changed', refreshBadges);
+    FD.on('notif:changed', refreshNotifBadge);
     refreshBadges();
 
     // keep the avatar chip in sync when details change
     FD.on('profile:changed', (uid) => { if (uid === FD.state.currentUser) updateProfileChip(FD.userById(uid)); });
+
+    // run notification checks now and periodically (assigned events fire immediately)
+    if (window.FD_NOTIF) {
+      window.FD_NOTIF.runChecks();
+      FD.on('tasks:changed', () => window.FD_NOTIF.checkDeadlines());
+      setInterval(() => window.FD_NOTIF.runChecks(), 5 * 60 * 1000);
+    }
 
     // route
     const initial = (location.hash || '#dashboard').slice(1);
@@ -179,6 +196,16 @@
     try { saved = localStorage.getItem('fd-theme') || 'light'; } catch (e) {}
     setTheme(saved);
     UI.hydrateIcons(document);
+
+    // register the service worker (PWA + notifications); harmless if unsupported
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (e.data && e.data.type === 'notif-click' && e.data.data && e.data.data.taskId) {
+          UI.openTaskPane(e.data.data.taskId);
+        }
+      });
+    }
 
     // local accounts gate
     window.FD_ACCOUNTS.loadCustomMembers();

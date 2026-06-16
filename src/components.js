@@ -306,25 +306,42 @@
             <div class="activity-time">${a.time}</div></div></div>`).join('')}</div>`;
   }
 
-  // ---------- Notifications flyout ----------
+  // ---------- Notifications flyout (per-user, real) ----------
   function toggleNotifications(anchorBtn) {
     const fly = document.getElementById('notifFlyout');
     if (!fly.hidden) { fly.hidden = true; return; }
+    const N = window.FD_NOTIF;
+    const me = FD.state.currentUser;
+    const list = N ? N.forUser(me) : [];
+    const perm = N ? N.permission() : 'unsupported';
+
     fly.innerHTML = `
       <div class="flyout-head"><div style="font-weight:600">Notifications</div>
-        <button class="btn subtle sm" id="markRead">Mark all read</button></div>
+        ${list.length ? '<button class="btn subtle sm" id="markRead">Mark all read</button>' : ''}</div>
+      ${perm !== 'granted' && perm !== 'unsupported' ? `
+        <div class="notif-enable" id="notifEnable">${icon('bell')}
+          <div style="flex:1"><b>Get alerts on this device</b><div class="muted" style="font-size:11px">Turn on notifications for new tasks, deadlines &amp; campaigns</div></div>
+          <button class="btn primary sm" id="enableBtn">Enable</button></div>` : ''}
       <div class="flyout-body">
-        ${FD.state.notifications.map((n) => `
-          <div class="notif-item">
-            <span class="notif-ic" style="background:${n.color}1a;color:${n.color}">${icon(n.icon)}</span>
-            <div><div class="notif-text">${n.text}</div><div class="notif-time">${n.time}</div></div>
-          </div>`).join('')}
-      </div>
-      <div style="padding:10px 16px;border-top:1px solid var(--stroke);text-align:center">
-        <a style="color:var(--ms-blue);font-size:13px;font-weight:600">View all activity</a></div>`;
+        ${list.length ? list.map((n) => `
+          <div class="notif-item ${n.read ? '' : 'unread'}" ${n.taskId ? `data-task="${n.taskId}"` : ''} style="${n.taskId ? 'cursor:pointer' : ''}">
+            <span class="notif-ic" style="background:${(n.color || '#0078d4')}1a;color:${n.color || '#0078d4'}">${icon(n.icon || 'bell')}</span>
+            <div style="flex:1"><div class="notif-text">${n.body ? '<b>' + n.title + '</b> · ' + n.body : (n.text || n.title)}</div>
+              <div class="notif-time">${N ? N.timeAgo(n.ts) : (n.time || '')}</div></div>
+          </div>`).join('') : `<div class="empty" style="padding:34px 16px">${icon('bell')}<div style="font-weight:600;color:var(--text-2)">No notifications</div><div style="font-size:12px;margin-top:4px">You're all caught up</div></div>`}
+      </div>`;
     fly.hidden = false;
     hydrateIcons(fly);
-    fly.querySelector('#markRead').onclick = () => { document.getElementById('notifDot').style.display = 'none'; fly.hidden = true; toast('All notifications marked as read'); };
+
+    const enable = fly.querySelector('#enableBtn');
+    if (enable) enable.onclick = () => N.requestPermission().then((p) => {
+      toast(p === 'granted' ? { title: 'Notifications on', sub: 'You\'ll get alerts on this device', kind: 'ok' } : { title: 'Notifications not enabled', kind: 'warn' });
+      fly.hidden = true;
+    });
+    const mr = fly.querySelector('#markRead');
+    if (mr) mr.onclick = () => { N.markAllRead(me); fly.hidden = true; };
+    fly.querySelectorAll('[data-task]').forEach((el) => el.onclick = () => { fly.hidden = true; N.markAllRead(me); openTaskPane(el.getAttribute('data-task')); });
+
     const onDoc = (e) => { if (!fly.contains(e.target) && e.target !== anchorBtn && !anchorBtn.contains(e.target)) { fly.hidden = true; document.removeEventListener('click', onDoc); } };
     setTimeout(() => document.addEventListener('click', onDoc), 0);
   }

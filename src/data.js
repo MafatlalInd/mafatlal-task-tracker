@@ -183,6 +183,7 @@
       { name: "Sustainability Story", channel: "Social + PR", status: "Active", budget: 450000, spend: 180000, reach: 156000, conv: 380, owner: "u2" },
       { name: "Festive Teaser", channel: "Meta Ads", status: "Scheduled", budget: 800000, spend: 0, reach: 0, conv: 0, owner: "u8" },
       { name: "Brand Refresh — Display", channel: "Display + Search", status: "Active", budget: 600000, spend: 410000, reach: 285000, conv: 720, owner: "u1" },
+      { name: "Influencer Pilot — Reels", channel: "Influencer", status: "Active", budget: 500000, spend: 385000, reach: 92000, conv: 115, owner: "u8" },
       { name: "Diwali Pre-buzz", channel: "Influencer", status: "Planned", budget: 950000, spend: 0, reach: 0, conv: 0, owner: "u10" },
     ],
     // Numeric bases (combined "All accounts" totals) used to derive per-account figures.
@@ -221,16 +222,20 @@
       { label: "May", reach: 168000, eng: 11400 },
       { label: "Jun", reach: 184000, eng: 12400 },
     ],
-    // Past performance — individual posts with dates.
+    // Past performance — individual posts with dates, tagged to a brand page.
     pastPosts: [
-      { date: "2026-06-08", title: "Monsoon launch reel", type: "Reel", reach: 62400, eng: 4820 },
-      { date: "2026-06-02", title: "Sustainability milestone", type: "Post", reach: 38100, eng: 2940 },
-      { date: "2026-05-26", title: "Behind the scenes — mill", type: "Story", reach: 24600, eng: 1810 },
-      { date: "2026-05-18", title: "Festive teaser", type: "Reel", reach: 19800, eng: 1560 },
-      { date: "2026-05-09", title: "New collection carousel", type: "Carousel", reach: 28700, eng: 2210 },
-      { date: "2026-04-27", title: "Customer spotlight", type: "Post", reach: 15400, eng: 1180 },
-      { date: "2026-04-15", title: "Heritage story — 1905", type: "Reel", reach: 41200, eng: 3360 },
-      { date: "2026-03-30", title: "Eco-fabric explainer", type: "Post", reach: 17900, eng: 1290 },
+      { date: "2026-06-08", acct: "igpg", title: "Monsoon launch reel", type: "Reel", reach: 62400, likes: 3820, comments: 640, shares: 360 },
+      { date: "2026-06-05", acct: "fbpg", title: "Monsoon collection album", type: "Album", reach: 41200, likes: 2140, comments: 310, shares: 420 },
+      { date: "2026-06-02", acct: "fbpg", title: "Sustainability milestone", type: "Post", reach: 38100, likes: 1980, comments: 520, shares: 440 },
+      { date: "2026-05-28", acct: "igpg", title: "Behind the scenes — mill", type: "Story", reach: 24600, likes: 1410, comments: 210, shares: 190 },
+      { date: "2026-05-22", acct: "fbhome", title: "Home linen lookbook", type: "Carousel", reach: 18700, likes: 1120, comments: 180, shares: 240 },
+      { date: "2026-05-18", acct: "igpg", title: "Festive teaser", type: "Reel", reach: 19800, likes: 1190, comments: 170, shares: 200 },
+      { date: "2026-05-12", acct: "fbpg", title: "Heritage story — 1905", type: "Reel", reach: 41200, likes: 2460, comments: 480, shares: 420 },
+      { date: "2026-05-06", acct: "fbhome", title: "Bedsheet care tips", type: "Post", reach: 12400, likes: 640, comments: 150, shares: 90 },
+      { date: "2026-04-28", acct: "igpg", title: "New collection carousel", type: "Carousel", reach: 28700, likes: 1610, comments: 330, shares: 270 },
+      { date: "2026-04-20", acct: "fbpg", title: "Customer spotlight", type: "Post", reach: 15400, likes: 820, comments: 210, shares: 150 },
+      { date: "2026-04-12", acct: "fbhome", title: "Festive home decor", type: "Reel", reach: 22100, likes: 1340, comments: 260, shares: 310 },
+      { date: "2026-03-30", acct: "igpg", title: "Eco-fabric explainer", type: "Post", reach: 17900, likes: 910, comments: 240, shares: 140 },
     ],
   };
 

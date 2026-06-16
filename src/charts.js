@@ -31,56 +31,39 @@
       ${rings}${center}</svg>`;
   }
 
+  // Bars rendered in HTML/CSS so value + axis labels stay crisp at any width.
   function bars(opts) {
-    // opts: { data:[{label,value,color?}], height, max?, fmt? }
-    const w = 100, n = opts.data.length;
     const h = opts.height || 160;
     const max = opts.max || Math.max(...opts.data.map((d) => d.value), 1);
-    const gap = 8, bw = (w - gap * (n - 1)) / n;
-    const padBottom = 22;
-    const chartH = h - padBottom;
-    let bars = "", labels = "";
-    opts.data.forEach((d, i) => {
-      const bh = (d.value / max) * (chartH - 6);
-      const x = i * (bw + gap);
-      const y = chartH - bh;
-      const color = d.color || css("--ms-blue");
-      bars += `<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="2" fill="${color}">
-        <title>${d.label}: ${d.value}</title></rect>`;
-      bars += `<text x="${x + bw / 2}" y="${y - 3}" text-anchor="middle" font-size="6.5" font-weight="700" fill="${css('--text-2')}">${opts.fmt ? opts.fmt(d.value) : d.value}</text>`;
-      labels += `<text x="${x + bw / 2}" y="${h - 6}" text-anchor="middle" font-size="6.5" fill="${css('--text-3')}">${d.label}</text>`;
-    });
-    return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" width="100%" height="${h}">${bars}${labels}</svg>`;
+    return `<div class="hbars" style="height:${h}px">${opts.data.map((d) => {
+      const pct = max ? Math.max(2, Math.round((d.value / max) * 100)) : 0;
+      return `<div class="hbar-col" title="${d.label}: ${d.value}">
+        <div class="hbar-val">${opts.fmt ? opts.fmt(d.value) : d.value}</div>
+        <div class="hbar-track"><div class="hbar-fill" style="height:${pct}%;background:${d.color || css('--ms-blue')}"></div></div>
+        <div class="hbar-lbl">${d.label}</div>
+      </div>`;
+    }).join('')}</div>`;
   }
 
   function groupedBars(opts) {
-    // opts: { data:[{label, a, b}], aColor, bColor, height }
-    const w = 100, n = opts.data.length;
     const h = opts.height || 180;
     const max = Math.max(...opts.data.flatMap((d) => [d.a, d.b]), 1);
-    const groupGap = 6;
-    const gw = (w - groupGap * (n - 1)) / n;
-    const bw = (gw - 3) / 2;
-    const padBottom = 20;
-    const chartH = h - padBottom;
-    let out = "";
-    opts.data.forEach((d, i) => {
-      const gx = i * (gw + groupGap);
-      [["a", opts.aColor || css("--ms-blue"), d.a], ["b", opts.bColor || css("--low"), d.b]].forEach((pair, j) => {
-        const bh = (pair[2] / max) * (chartH - 4);
-        const x = gx + j * (bw + 3);
-        out += `<rect x="${x}" y="${chartH - bh}" width="${bw}" height="${bh}" rx="1.5" fill="${pair[1]}"><title>${pair[2]}</title></rect>`;
-      });
-      out += `<text x="${gx + gw / 2}" y="${h - 5}" text-anchor="middle" font-size="6" fill="${css('--text-3')}">${d.label}</text>`;
-    });
-    return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" width="100%" height="${h}">${out}</svg>`;
+    const aC = opts.aColor || css('--ms-blue'), bC = opts.bColor || css('--low');
+    return `<div class="hbars" style="height:${h}px">${opts.data.map((d) => `
+      <div class="hbar-col" title="${d.label}">
+        <div class="hbar-group">
+          <div class="hbar-track"><div class="hbar-fill" style="height:${Math.max(2, Math.round(d.a / max * 100))}%;background:${aC}"></div></div>
+          <div class="hbar-track"><div class="hbar-fill" style="height:${Math.max(2, Math.round(d.b / max * 100))}%;background:${bC}"></div></div>
+        </div>
+        <div class="hbar-lbl">${d.label}</div>
+      </div>`).join('')}</div>`;
   }
 
+  // Line geometry stays in a stretchable SVG; axis labels are HTML below it.
   function line(opts) {
-    // opts: { series:[{points:[v..], color}], labels:[], height }
     const w = 100, h = opts.height || 160;
-    const padB = 16, padT = 6;
-    const chartH = h - padB - padT;
+    const padT = 6, padB = 6;
+    const chartH = h - padT - padB;
     const all = opts.series.flatMap((s) => s.points);
     const max = Math.max(...all, 1), min = Math.min(...all, 0);
     const range = max - min || 1;
@@ -88,22 +71,19 @@
     const xStep = w / (n - 1 || 1);
     const yOf = (v) => padT + chartH - ((v - min) / range) * chartH;
     let out = "";
-    // gridlines
     for (let g = 0; g <= 3; g++) {
       const y = padT + (chartH / 3) * g;
       out += `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="${css('--stroke')}" stroke-width="0.3"></line>`;
     }
     opts.series.forEach((s) => {
-      let pts = s.points.map((v, i) => `${i * xStep},${yOf(v)}`).join(" ");
-      const area = `0,${padT + chartH} ` + pts + ` ${w},${padT + chartH}`;
-      if (s.fill) out += `<polygon points="${area}" fill="${s.color}" opacity="0.08"></polygon>`;
-      out += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"></polyline>`;
-      s.points.forEach((v, i) => { out += `<circle cx="${i * xStep}" cy="${yOf(v)}" r="1.3" fill="${s.color}"></circle>`; });
+      const pts = s.points.map((v, i) => `${i * xStep},${yOf(v)}`).join(" ");
+      if (s.fill) out += `<polygon points="0,${padT + chartH} ${pts} ${w},${padT + chartH}" fill="${s.color}" opacity="0.08"></polygon>`;
+      out += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>`;
     });
-    opts.labels.forEach((l, i) => {
-      out += `<text x="${i * xStep}" y="${h - 4}" text-anchor="${i === 0 ? 'start' : i === n - 1 ? 'end' : 'middle'}" font-size="5.5" fill="${css('--text-3')}">${l}</text>`;
-    });
-    return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" width="100%" height="${h}">${out}</svg>`;
+    return `<div class="line-chart">
+      <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" width="100%" height="${h}">${out}</svg>
+      <div class="chart-xlabels">${opts.labels.map((l) => `<span>${l}</span>`).join('')}</div>
+    </div>`;
   }
 
   function gauge(value, label) {

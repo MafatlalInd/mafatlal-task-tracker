@@ -344,23 +344,43 @@
         <div class="muted" style="font-size:11px;text-align:center;margin-top:6px">Engagement plotted ×12 for readability against reach.</div>
       </div>
 
-      <div class="grid cols-12" style="margin-bottom:16px">
-        <div class="card">
-          <div class="card-head"><div><div class="card-title">Post History</div><div class="card-sub">Recent posts &amp; their performance</div></div></div>
-          <table class="tbl" style="border:0"><thead><tr><th>Date</th><th>Post</th><th>Type</th><th>Reach</th><th>Engagement</th></tr></thead><tbody>
-            ${M.pastPosts.map((p) => `<tr><td class="muted" style="white-space:nowrap">${fmtDate(p.date)}</td>
-              <td class="t-name">${p.title}</td><td><span class="chip">${p.type}</span></td>
-              <td>${num(p.reach * fAcct)}</td><td>${num(p.eng * fAcct)}</td></tr>`).join('')}
-          </tbody></table>
-        </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Follower Growth</div></div>
-          ${C.bars({ height: 180, data: M.meta.growth.map((g) => ({ label: g.label, value: Math.round(g.value * fAcct), color: css('--teams') })), fmt: (v) => (v / 1000).toFixed(1) + 'k' })}
-          <div class="muted" style="font-size:12px;text-align:center;margin-top:8px">${acctName}</div>
-        </div>
-      </div>`;
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><div class="card-title">Follower Growth</div><div class="card-sub">${acctName}</div></div>
+        ${C.bars({ height: 170, data: M.meta.growth.map((g) => ({ label: g.label, value: Math.round(g.value * fAcct), color: css('--teams') })), fmt: (v) => (v / 1000).toFixed(1) + 'k' })}
+      </div>
+
+      ${postWiseTable()}`;
     UI.hydrateIcons(host);
     wireSelector(root, 'metabiz');
+
+    function postWiseTable() {
+      const sel = selected('metabiz');
+      const showAll = sel === 'all';
+      const pageName = (id) => (accounts('metabiz').find((a) => a.id === id) || {}).name || '—';
+      let posts = M.pastPosts.filter((p) => showAll || p.acct === sel);
+      const eng = (p) => p.likes + p.comments + p.shares;
+      const engRate = (p) => p.reach ? ((eng(p) / p.reach) * 100).toFixed(1) + '%' : '—';
+      return `<div class="card">
+        <div class="card-head"><div><div class="card-title">Post-wise Analytics</div>
+          <div class="card-sub">${showAll ? 'Every post across ' + accounts('metabiz').length + ' brand pages' : pageName(sel)} · ${posts.length} posts</div></div></div>
+        ${posts.length ? `<table class="tbl" style="border:0"><thead><tr>
+            <th>Date</th>${showAll ? '<th>Page</th>' : ''}<th>Post</th><th>Type</th><th>Reach</th><th>Likes</th><th>Comments</th><th>Shares</th><th>Engagement</th><th>Eng. rate</th>
+          </tr></thead><tbody>
+          ${posts.map((p) => `<tr>
+            <td class="muted" style="white-space:nowrap">${fmtDate(p.date)}</td>
+            ${showAll ? `<td><span class="chip" style="font-size:11px">${pageName(p.acct)}</span></td>` : ''}
+            <td class="t-name">${p.title}</td>
+            <td><span class="chip">${p.type}</span></td>
+            <td>${num(p.reach)}</td>
+            <td>${num(p.likes)}</td>
+            <td>${num(p.comments)}</td>
+            <td>${num(p.shares)}</td>
+            <td><b>${num(eng(p))}</b></td>
+            <td><span class="badge" style="background:rgba(16,124,16,.1);color:var(--ok)">${engRate(p)}</span></td>
+          </tr>`).join('')}
+        </tbody></table>` : `<div class="empty" style="padding:30px">${UI.icon('megaphone')}<div>No posts for this page yet</div></div>`}
+      </div>`;
+    }
   }
 
   function emptyConnect(conn, root) {
