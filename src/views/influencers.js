@@ -30,7 +30,10 @@
         <div class="page-head">
           <div><h1 class="page-title">${UI.icon('megaphone')} Influencers</h1>
             <div class="page-sub">Influencer directory &amp; collaboration charges</div></div>
-          <div class="page-actions"><button class="btn primary" id="addInf">${UI.icon('add')} Add influencer</button></div>
+          <div class="page-actions">
+            <button class="btn" id="infExport">${UI.icon('download')} Export CSV</button>
+            <button class="btn primary" id="addInf">${UI.icon('add')} Add influencer</button>
+          </div>
         </div>
         <div class="grid cols-3" id="infKpis" style="margin-bottom:16px"></div>
         <div class="toolbar">
@@ -42,6 +45,13 @@
       </div>`;
     UI.hydrateIcons(root);
     root.querySelector('#addInf').onclick = () => editModal(null, root);
+    root.querySelector('#infExport').onclick = () => {
+      const rows = filtered();
+      window.FD_EXPORT.csv('Influencers_' + window.FD_EXPORT.today() + '.csv',
+        ['Name', 'Platform', 'Handle', 'Category', 'Followers', 'Charge (INR)', 'Per', 'Status', 'Managed by', 'Email', 'Phone', 'Notes'],
+        rows.map((i) => [i.name, i.platform, i.handle, i.category, i.followers, i.rateAmount, i.rateUnit, i.status, (FD.userById(i.managedBy) || {}).name || '', i.email, i.phone, i.notes]));
+      UI.toast({ title: 'Influencers exported', sub: rows.length + ' records · CSV', icon: 'download', kind: 'ok' });
+    };
     const q = root.querySelector('#infQ'); q.oninput = () => { filters.q = q.value; paint(root); };
     root.querySelector('#infPlatform').onchange = (e) => { filters.platform = e.target.value; paint(root); };
     root.querySelector('#infStatus').onchange = (e) => { filters.status = e.target.value; paint(root); };

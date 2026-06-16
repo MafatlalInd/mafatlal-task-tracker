@@ -108,7 +108,7 @@
     UI.hydrateIcons(root);
     paintConnectors(root);
     root.querySelectorAll('#anTabs button').forEach((b) => b.onclick = () => { tab = b.getAttribute('data-tab'); render(root); });
-    root.querySelector('#anExport').onclick = () => UI.toast({ title: 'Report exported', sub: 'Marketing_Analytics.pdf saved to OneDrive', icon: 'download' });
+    root.querySelector('#anExport').onclick = () => openExportMenu(root);
     root.querySelector('#rangeBtn').onclick = () => openRangeModal(root);
     paintBody(root);
   }
@@ -446,6 +446,48 @@
       </div>`;
     UI.hydrateIcons(host);
     host.querySelector('#newCampaign').onclick = () => UI.toast({ title: 'New campaign', sub: 'Campaign builder would open here' });
+  }
+
+  // ---- Export (CSV) of every analytics dataset ----
+  function openExportMenu(root) {
+    const E = window.FD_EXPORT, dt = E.today();
+    const pageName = (id) => (accounts('metabiz').find((a) => a.id === id) || {}).name || '';
+    const uname = (id) => (FD.userById(id) || {}).name || '';
+    const fGa = factor('ga4'), fGaR = fGa * rangeFactor();
+    const fGscR = factor('gsc') * rangeFactor();
+    const fMeta = factor('metabiz');
+    const items = [
+      { label: 'Website — Traffic by month', sub: 'Google Analytics', icon: 'report',
+        fn: () => E.csv('GA_traffic_' + dt + '.csv', ['Month', 'Users', 'Sessions'], M.trafficTrend.map((x) => [x.label, Math.round(x.users * fGa), Math.round(x.sessions * fGa)])) },
+      { label: 'Website — Top pages', sub: 'Google Analytics', icon: 'report',
+        fn: () => E.csv('GA_top_pages_' + dt + '.csv', ['Page', 'Views', 'Change'], M.topPages.map((p) => [p.path, Math.round(p.views * fGaR), p.change])) },
+      { label: 'Search — Top queries', sub: 'Search Console', icon: 'search',
+        fn: () => E.csv('SearchConsole_queries_' + dt + '.csv', ['Query', 'Clicks', 'Impressions', 'Avg position'], M.search.queries.map((q) => [q.q, Math.round(q.clicks * fGscR), Math.round(q.impr * fGscR), q.pos])) },
+      { label: 'Social — Post-wise analytics', sub: 'Meta Business pages', icon: 'megaphone',
+        fn: () => { const sel = selected('metabiz'); const posts = M.pastPosts.filter((p) => sel === 'all' || p.acct === sel);
+          E.csv('Meta_posts_' + dt + '.csv', ['Date', 'Page', 'Post', 'Type', 'Reach', 'Likes', 'Comments', 'Shares', 'Engagement'], posts.map((p) => [p.date, pageName(p.acct), p.title, p.type, p.reach, p.likes, p.comments, p.shares, p.likes + p.comments + p.shares])); } },
+      { label: 'Social — Follower growth', sub: 'Meta Business pages', icon: 'megaphone',
+        fn: () => E.csv('Meta_followers_' + dt + '.csv', ['Week', 'Followers'], M.meta.growth.map((g) => [g.label, Math.round(g.value * fMeta)])) },
+      { label: 'Ad campaigns', sub: 'Meta Ads & others', icon: 'bolt',
+        fn: () => E.csv('Campaigns_' + dt + '.csv', ['Campaign', 'Channel', 'Status', 'Budget (INR)', 'Spend (INR)', 'Reach', 'Conversions', 'Owner'], M.campaigns.map((c) => [c.name, c.channel, c.status, c.budget, c.spend, c.reach, c.conv, uname(c.owner)])) },
+    ];
+    UI.modal({
+      title: 'Export data (CSV)', width: 480,
+      body: `<div class="muted" style="font-size:12.5px;margin-bottom:12px">Each download is a .csv file (opens in Excel / Google Sheets) and reflects the current account &amp; date-range selection.</div>` +
+        items.map((it, idx) => `<div class="attach" data-x="${idx}" style="cursor:pointer">
+          <span class="notif-ic" style="background:var(--ms-blue-wash);color:var(--ms-blue);width:32px;height:32px">${UI.icon(it.icon)}</span>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${it.label}</div><div class="muted" style="font-size:11px">${it.sub}</div></div>
+          ${UI.icon('download')}</div>`).join(''),
+      foot: `<button class="btn subtle" data-close>Done</button>`,
+      onMount: (m) => {
+        UI.hydrateIcons(m);
+        m.querySelectorAll('[data-x]').forEach((el) => el.onclick = () => {
+          const it = items[+el.getAttribute('data-x')];
+          it.fn();
+          UI.toast({ title: 'Exported', sub: it.label + '.csv', icon: 'download', kind: 'ok' });
+        });
+      },
+    });
   }
 
   function monthLabel() { return FD.data.TODAY.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); }

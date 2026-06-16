@@ -26,15 +26,33 @@
       </div>`;
     UI.hydrateIcons(root);
     root.querySelectorAll('#repTabs button').forEach((b) => b.onclick = () => { tab = b.getAttribute('data-tab'); render(root); });
-    ['exXl', 'Excel'].length;
-    root.querySelector('#exXl').onclick = () => exp('Excel', 'xlsx');
-    root.querySelector('#exPdf').onclick = () => exp('PDF', 'pdf');
-    root.querySelector('#exPpt').onclick = () => exp('PowerPoint', 'pptx');
+    root.querySelector('#exXl').onclick = () => exportCSV();
+    root.querySelector('#exPdf').onclick = () => { UI.toast({ title: 'Opening print dialog', sub: 'Choose "Save as PDF" as the printer', icon: 'download' }); setTimeout(() => window.print(), 400); };
+    root.querySelector('#exPpt').onclick = () => UI.toast({ title: 'PowerPoint export', sub: 'Use the CSV in PowerPoint, or export to PDF', kind: 'warn' });
     root.querySelector('#exPbi').onclick = () => UI.toast({ title: 'Opening Power BI', sub: 'Embedded executive dashboard', icon: 'report' });
     paint(root);
   }
 
-  function exp(name, ext) { UI.toast({ title: 'Exported to ' + name, sub: 'Report_' + tab + '.' + ext + ' saved to OneDrive', icon: 'download' }); }
+  function exportCSV() {
+    const E = window.FD_EXPORT, dt = E.today();
+    if (tab === 'team') {
+      const wl = FD.workloadByUser();
+      E.csv('Team_report_' + dt + '.csv', ['Member', 'Department', 'Active tasks', 'Overdue', 'Completed'],
+        wl.map((w) => [w.user.name, FD.deptById(w.user.dept).name, w.count, w.overdue, w.completed]));
+    } else if (tab === 'dept') {
+      E.csv('Department_report_' + dt + '.csv', ['Department', 'Total', 'Completed', 'Delayed', 'Completion %'],
+        FD.deptStats().map((s) => [s.name, s.total, s.done, s.late, s.rate]));
+    } else {
+      const m = FD.metrics();
+      const rows = [
+        ['Total tasks managed', m.total], ['Completed', m.completed], ['Completion rate %', m.completionRate],
+        ['Overdue / delayed', m.delayed], ['Awaiting approval', m.waiting], ['SLA compliance %', m.sla], ['', ''],
+        ['Project', 'Progress %'],
+      ].concat(FD.data.projects.map((p) => [p.name, p.progress]));
+      E.csv('Management_report_' + dt + '.csv', ['Metric', 'Value'], rows);
+    }
+    UI.toast({ title: 'Report exported', sub: tab + ' report · CSV (opens in Excel)', icon: 'download', kind: 'ok' });
+  }
 
   function paint(root) {
     const host = root.querySelector('#repBody');
