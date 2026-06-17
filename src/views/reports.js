@@ -47,8 +47,12 @@
       const rows = [
         ['Total tasks managed', m.total], ['Completed', m.completed], ['Completion rate %', m.completionRate],
         ['Overdue / delayed', m.delayed], ['Awaiting approval', m.waiting], ['SLA compliance %', m.sla], ['', ''],
-        ['Project', 'Progress %'],
-      ].concat(FD.data.projects.map((p) => [p.name, p.progress]));
+        ['Project', 'Completion %'],
+      ].concat(FD.data.projects.map((p) => {
+        const tks = FD.state.tasks.filter((t) => t.project === p.id);
+        const done = tks.filter((t) => t.status === 'Completed').length;
+        return [p.name, tks.length ? Math.round(done / tks.length * 100) : 0];
+      }));
       E.csv('Management_report_' + dt + '.csv', ['Metric', 'Value'], rows);
     }
     UI.toast({ title: 'Report exported', sub: tab + ' report · CSV (opens in Excel)', icon: 'download', kind: 'ok' });
@@ -113,10 +117,15 @@
           ${C.gauge(m.sla, 'On-time delivery')}
           <div class="muted" style="font-size:12px;margin-top:8px">Target: 90% · ${m.sla >= 90 ? 'Meeting target' : 'Below target'}</div>
         </div>
-        <div class="card"><div class="card-head"><div class="card-title">Strategic Projects</div></div>
-          ${FD.data.projects.map((p) => `<div style="margin-bottom:14px">
-            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span style="font-weight:600">${p.name}</span><span class="muted">${p.progress}%</span></div>
-            <div class="progress-bar"><i style="width:${p.progress}%;background:${p.color}"></i></div></div>`).join('')}
+        <div class="card"><div class="card-head"><div class="card-title">Projects</div><div class="card-sub">Completion by category</div></div>
+          ${FD.data.projects.map((p) => {
+            const tks = FD.state.tasks.filter((t) => t.project === p.id);
+            const done = tks.filter((t) => t.status === 'Completed').length;
+            const rate = tks.length ? Math.round(done / tks.length * 100) : 0;
+            return `<div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span style="font-weight:600">${p.name}</span><span class="muted">${tks.length ? rate + '% · ' + done + '/' + tks.length : 'No tasks'}</span></div>
+              <div class="progress-bar"><i style="width:${rate}%;background:${p.color}"></i></div></div>`;
+          }).join('')}
         </div>
       </div>
       <div class="card"><div class="card-head"><div><div class="card-title">Monthly Summary</div><div class="card-sub">June 2026 · auto-generated for leadership</div></div>

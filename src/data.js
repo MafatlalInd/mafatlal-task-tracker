@@ -41,13 +41,16 @@
     { id: "u10", name: "Mohit", initials: "MT", color: "#498205", role: "Team Member", dept: "comm", email: "mohit@mafatlals.com" },
   ];
 
+  // Project categories (used in the task "Project" field).
   const projects = [
-    { id: "p1", name: "Monsoon 2026 Campaign", dept: "mkt", color: "#0078d4", start: iso(d(-40)), end: iso(d(35)), progress: 62, lead: "u1" },
-    { id: "p2", name: "Brand Refresh — Phase 2", dept: "comm", color: "#5b5fc7", start: iso(d(-25)), end: iso(d(50)), progress: 38, lead: "u2" },
-    { id: "p3", name: "Q3 Sales Enablement", dept: "sales", color: "#ca5010", start: iso(d(-15)), end: iso(d(45)), progress: 24, lead: "u3" },
-    { id: "p4", name: "Factory Branding Audit", dept: "mfg", color: "#8764b8", start: iso(d(-10)), end: iso(d(20)), progress: 55, lead: "u6" },
-    { id: "p5", name: "HR Onboarding Revamp", dept: "hr", color: "#107c10", start: iso(d(-30)), end: iso(d(15)), progress: 80, lead: "u4" },
-    { id: "p6", name: "ERP Migration", dept: "it", color: "#0099bc", start: iso(d(-50)), end: iso(d(60)), progress: 45, lead: "u7" },
+    { id: "pj1", name: "Website/App Development", color: "#0078d4" },
+    { id: "pj2", name: "Leadership Driven", color: "#5b5fc7" },
+    { id: "pj3", name: "Miscellaneous", color: "#605e5c" },
+    { id: "pj4", name: "Content Creation", color: "#c13584" },
+    { id: "pj5", name: "Reporting / Success Story", color: "#107c10" },
+    { id: "pj6", name: "Daily Operation", color: "#ca5010" },
+    { id: "pj7", name: "Performance Marketing", color: "#0099bc" },
+    { id: "pj8", name: "Whatsapp / Email Communication", color: "#038387" },
   ];
 
   const PRI = ["Critical", "High", "Medium", "Low"];
