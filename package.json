@@ -4,6 +4,6 @@
   "private": true,
   "description": "Mafatlal Digital Team Task Tracker — shared backend on Vercel",
   "dependencies": {
-    "@vercel/postgres": "^0.10.0"
+    "pg": "^8.13.1"
   }
 }

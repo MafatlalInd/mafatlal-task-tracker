@@ -17,15 +17,15 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    const sql = (await ensure()).sql; // ensures table exists, returns the pool
+    const db = await ensure(); // ensures the table exists, returns the pg pool
 
     if (req.method === 'GET') {
       const key = req.query && req.query.key;
       if (key) {
-        const { rows } = await sql`SELECT value FROM fd_store WHERE key = ${key}`;
+        const { rows } = await db.query('SELECT value FROM fd_store WHERE key = $1', [key]);
         return res.status(200).json(rows[0] ? rows[0].value : null);
       }
-      const { rows } = await sql`SELECT key, value FROM fd_store`;
+      const { rows } = await db.query('SELECT key, value FROM fd_store');
       const out = {};
       rows.forEach((r) => { out[r.key] = r.value; });
       return res.status(200).json(out);
@@ -37,16 +37,18 @@ module.exports = async (req, res) => {
       const key = body && body.key;
       if (!key) return res.status(400).json({ error: 'key required' });
       const value = JSON.stringify(body.value === undefined ? null : body.value);
-      await sql`
-        INSERT INTO fd_store (key, value, updated_at)
-        VALUES (${key}, ${value}::jsonb, now())
-        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`;
+      await db.query(
+        `INSERT INTO fd_store (key, value, updated_at)
+         VALUES ($1, $2::jsonb, now())
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
+        [key, value]
+      );
       return res.status(200).json({ ok: true });
     }
 
     if (req.method === 'DELETE') {
       const key = req.query && req.query.key;
-      if (key) await sql`DELETE FROM fd_store WHERE key = ${key}`;
+      if (key) await db.query('DELETE FROM fd_store WHERE key = $1', [key]);
       return res.status(200).json({ ok: true });
     }
 
