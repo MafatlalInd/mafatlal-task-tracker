@@ -22,6 +22,16 @@ function connectionString() {
   return key ? env[key] : undefined;
 }
 
+// Managed Postgres (Vercel/Neon/Supabase) serves a self-signed cert chain.
+// Their connection strings carry "sslmode=require", which makes pg verify the
+// cert and fail with "self-signed certificate in certificate chain". Rewriting
+// it to "sslmode=no-verify" keeps the connection encrypted but skips cert
+// verification — the supported way to do this in node-postgres.
+function withNoVerifySsl(cs) {
+  if (/[?&]sslmode=/i.test(cs)) return cs.replace(/sslmode=[^&]+/i, 'sslmode=no-verify');
+  return cs + (cs.indexOf('?') > -1 ? '&' : '?') + 'sslmode=no-verify';
+}
+
 let pool = null;
 function getPool() {
   if (pool) return pool;
@@ -33,9 +43,8 @@ function getPool() {
     );
   }
   pool = new Pool({
-    connectionString: cs,
-    // Vercel/Neon/most managed Postgres require TLS. Accept their cert.
-    ssl: { rejectUnauthorized: false },
+    connectionString: withNoVerifySsl(cs),
+    ssl: { rejectUnauthorized: false }, // belt-and-suspenders alongside no-verify
     max: 3,
     idleTimeoutMillis: 10000,
     connectionTimeoutMillis: 8000,
