@@ -53,6 +53,7 @@
     bolt: 'M13 2L3 14h9l-1 8 10-12h-9z',
     folder: 'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z',
     history: 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l4 2',
+    mic: 'M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM19 10v2a7 7 0 0 1-14 0v-2M12 19v3',
   };
   function icon(name, cls) {
     const dpath = P[name] || P.tasks;
@@ -151,7 +152,10 @@
             ${t.source === 'email' ? `<span class="chip" style="color:var(--ms-blue)">${icon('outlook')} From email</span>` : ''}
           </div>
           ${isNew
-            ? `<input class="control" id="f-name" placeholder="Task name" value="${t.name}" style="font-size:18px;font-weight:600;border:0;padding:0;background:transparent"/>`
+            ? `<div style="display:flex;align-items:center;gap:8px">
+                 <input class="control" id="f-name" placeholder="Task name — or tap the mic to speak" value="${t.name}" style="flex:1;font-size:18px;font-weight:600;border:0;padding:0;background:transparent"/>
+                 <button class="mic-btn" id="voiceName" title="Dictate task name">${icon('mic')}</button>
+               </div>`
             : `<div style="font-size:18px;font-weight:600;line-height:1.3" id="f-name-static">${t.name}</div>`}
         </div>
         <button class="icon-btn" style="color:var(--text-2)" id="paneClose">${icon('close')}</button>
@@ -167,7 +171,8 @@
           </div>` : ''}
 
         <div class="pane-section-title">Details</div>
-        <div class="field"><label>Description</label>
+        <div class="field"><label style="display:flex;align-items:center;justify-content:space-between">Description
+          <button class="mic-btn sm" id="voiceDesc" title="Dictate description">${icon('mic')}</button></label>
           <textarea id="f-desc" placeholder="Add a description…">${t.desc || ''}</textarea></div>
 
         <div class="field-row">
@@ -241,6 +246,51 @@
 
     const prog = pane.querySelector('#f-progress');
     if (prog) prog.oninput = () => pane.querySelector('#prog-val').textContent = prog.value + '%';
+
+    // ----- Voice input (dictate task name / description) -----
+    function parseHints(text) {
+      const lc = text.toLowerCase();
+      const prSel = pane.querySelector('#f-priority'), dueEl = pane.querySelector('#f-due');
+      const found = [];
+      if (/\b(urgent|critical|asap|emergency)\b/.test(lc)) { if (prSel) prSel.value = 'Critical'; found.push('Critical priority'); }
+      else if (/\bhigh\b/.test(lc)) { if (prSel) prSel.value = 'High'; found.push('High priority'); }
+      else if (/\blow\b/.test(lc)) { if (prSel) prSel.value = 'Low'; found.push('Low priority'); }
+      const today = FD.data.TODAY, iso = FD.data.iso;
+      const setDue = (off, lbl) => { if (dueEl) { dueEl.value = iso(new Date(today.getTime() + off * 86400000)); found.push('due ' + lbl); } };
+      if (/\btoday\b/.test(lc)) setDue(0, 'today');
+      else if (/\btomorrow\b/.test(lc)) setDue(1, 'tomorrow');
+      else if (/\bnext week\b/.test(lc)) setDue(7, 'next week');
+      else { const m = lc.match(/in (\d+) days?/); if (m) setDue(parseInt(m[1], 10), 'in ' + m[1] + ' days'); }
+      if (found.length) toast({ title: 'Detected from your voice', sub: found.join(' · '), icon: 'sparkle' });
+    }
+    function wireMic(btnSel, fieldSel, o) {
+      o = o || {};
+      const btn = pane.querySelector(btnSel), field = pane.querySelector(fieldSel);
+      if (!btn || !field) return;
+      let listening = false, stopFn = null, base = '';
+      btn.onclick = () => {
+        if (!window.FD_VOICE || !FD_VOICE.supported()) {
+          toast({ title: 'Voice input not available here', sub: 'Use Chrome, Edge or Safari over HTTPS', kind: 'warn', icon: 'mic' });
+          return;
+        }
+        if (listening) { if (stopFn) stopFn(); return; }
+        base = o.append && field.value ? field.value.trim() + ' ' : '';
+        listening = true; btn.classList.add('listening');
+        toast({ title: 'Listening…', sub: 'Speak now — tap the mic again to stop', icon: 'mic' });
+        stopFn = FD_VOICE.listen({
+          onInterim: (txt) => { field.value = base + txt; },
+          onResult: (txt) => { if (txt) { field.value = base + txt; if (o.parse) parseHints(txt); } },
+          onError: (err) => {
+            listening = false; btn.classList.remove('listening');
+            if (err === 'not-allowed' || err === 'service-not-allowed') toast({ title: 'Microphone blocked', sub: 'Allow mic access in your browser to dictate', kind: 'err' });
+            else if (err === 'no-speech') toast({ title: 'Didn\'t catch that', sub: 'Try again', kind: 'warn' });
+          },
+          onEnd: () => { listening = false; btn.classList.remove('listening'); },
+        });
+      };
+    }
+    wireMic('#voiceName', '#f-name', { parse: true });
+    wireMic('#voiceDesc', '#f-desc', { append: true });
 
     // collaborator chips toggle
     pane.querySelectorAll('#f-collab .collab-chip').forEach((chip) => {

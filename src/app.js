@@ -10,7 +10,7 @@
     dashboard: 'Dashboard', tasks: 'Tasks', board: 'Board', calendar: 'Calendar',
     timeline: 'Timeline', team: 'Team', approvals: 'Approvals', corpcomm: 'Corp Comm',
     documents: 'Documents', reports: 'Reports', analytics: 'Marketing Analytics',
-    influencers: 'Influencers', ai: 'AI Assistant', integrations: 'Microsoft 365', settings: 'Settings',
+    influencers: 'Influencers', expenses: 'Marketing Expenses', ai: 'AI Assistant', integrations: 'Microsoft 365', settings: 'Settings',
   };
   const ADMIN_ONLY = { team: true };
 
@@ -137,6 +137,11 @@
 
     // command bar
     document.getElementById('newTaskBtn').onclick = () => UI.openTaskPane();
+    document.getElementById('voiceTaskBtn').onclick = () => {
+      UI.openTaskPane();
+      const v = document.getElementById('voiceName'); // start dictation in the same gesture
+      if (v) v.click();
+    };
     document.getElementById('aiBtn').onclick = () => go('ai');
     document.getElementById('themeToggle').onclick = toggleTheme;
     document.getElementById('notifBtn').onclick = (e) => UI.toggleNotifications(e.currentTarget);

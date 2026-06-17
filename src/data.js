@@ -7,7 +7,13 @@
   const TODAY = new Date(2026, 5, 12); // 2026-06-12 (months are 0-based)
   const day = 86400000;
   const d = (offsetDays) => new Date(TODAY.getTime() + offsetDays * day);
-  const iso = (dt) => dt.toISOString().slice(0, 10);
+  // Local-date ISO (YYYY-MM-DD) — avoids the UTC day-shift that toISOString
+  // causes in timezones ahead of UTC (e.g. India / IST).
+  const iso = (dt) => {
+    const m = String(dt.getMonth() + 1).padStart(2, "0");
+    const day = String(dt.getDate()).padStart(2, "0");
+    return dt.getFullYear() + "-" + m + "-" + day;
+  };
 
   const departments = [
     { id: "mkt", name: "Marketing", color: "#0078d4" },

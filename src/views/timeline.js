@@ -24,7 +24,7 @@
 
   const dLabel = (isoDate) => new Date(isoDate + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
   const inr = (n) => '₹' + (n >= 100000 ? (n / 100000).toFixed(n % 100000 ? 1 : 0) + 'L' : Number(n).toLocaleString('en-IN'));
-  const addDays = (iso, days) => new Date(new Date(iso + 'T00:00:00').getTime() + days * 86400000).toISOString().slice(0, 10);
+  const addDays = (isoStr, days) => FD.data.iso(new Date(new Date(isoStr + 'T00:00:00').getTime() + days * 86400000));
 
   // Persisted reschedules (drag) — applied over the seed schedule each load.
   const SKEY = 'fd-mkt-schedule-v1';

@@ -454,6 +454,30 @@ a { color: inherit; text-decoration: none; cursor: pointer; }
 
 .sparkle-grad { background: linear-gradient(120deg,#5b5fc7,#0078d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
 
+/* ---------- Marketing expenses table ---------- */
+.exp-table td, .exp-table th { text-align: right; white-space: nowrap; }
+.exp-table td:first-child, .exp-table th:first-child { text-align: left; position: sticky; left: 0; background: var(--bg-surface); z-index: 1; }
+.exp-table thead th { text-align: right; }
+.exp-table thead th:first-child { text-align: left; }
+.exp-cell { width: 96px; height: 30px; border: 1px solid transparent; border-radius: 5px; background: var(--bg-surface-2); color: var(--text); padding: 0 8px; font-size: 13px; text-align: right; outline: none; }
+.exp-cell:hover { border-color: var(--stroke-2); }
+.exp-cell:focus { border-color: var(--mafatlal-red); box-shadow: 0 0 0 1px var(--mafatlal-red); background: var(--bg-surface); }
+.exp-rowtot { font-weight: 600; }
+.exp-group td { background: var(--bg-surface-2); border-top: 1px solid var(--stroke-2); }
+.exp-group td:first-child { background: var(--bg-surface-2); }
+.exp-child td:first-child { padding-left: 26px; color: var(--text-2); }
+.exp-table tfoot .exp-total td { background: var(--bg-selected); border-top: 2px solid var(--stroke-2); font-size: 13.5px; }
+.exp-table tfoot .exp-total td:first-child { background: var(--bg-selected); }
+
+/* ---------- Voice input mic button ---------- */
+.mic-btn { width: 34px; height: 34px; border: 1px solid var(--stroke-2); background: var(--bg-surface); color: var(--text-2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+.mic-btn:hover { color: var(--mafatlal-red); border-color: var(--mafatlal-red); }
+.mic-btn svg { width: 17px; height: 17px; }
+.mic-btn.sm { width: 26px; height: 26px; border: 0; }
+.mic-btn.sm svg { width: 15px; height: 15px; }
+.mic-btn.listening { background: var(--mafatlal-red); color: #fff; border-color: var(--mafatlal-red); animation: micPulse 1.3s infinite; }
+@keyframes micPulse { 0% { box-shadow: 0 0 0 0 rgba(226,35,26,.5); } 70% { box-shadow: 0 0 0 9px rgba(226,35,26,0); } 100% { box-shadow: 0 0 0 0 rgba(226,35,26,0); } }
+
 /* ---------- HTML charts (crisp labels at any width) ---------- */
 .hbars { display: flex; gap: 10px; align-items: stretch; }
 .hbar-col { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
