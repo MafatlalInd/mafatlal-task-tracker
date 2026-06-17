@@ -1,0 +1,9 @@
+{
+  "name": "mafatlal-task-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mafatlal Digital Team Task Tracker — shared backend on Vercel",
+  "dependencies": {
+    "@vercel/postgres": "^0.10.0"
+  }
+}

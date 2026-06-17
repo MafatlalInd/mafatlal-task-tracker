@@ -313,14 +313,18 @@
       calendarSync: pane.querySelector('#f-calsync').checked,
     });
 
-    pane.querySelector('#paneSave').onclick = () => {
+    let saving = false;   // guard against double-submit (rapid double-click)
+    pane.querySelector('#paneSave').onclick = (e) => {
+      if (saving) return;
+      saving = true;
+      if (e && e.currentTarget) e.currentTarget.disabled = true;
       const patch = collect();
       if (isNew) {
         FD.createTask(patch);
-        toast({ title: 'Task created', sub: patch.calendarSync ? 'Synced to Outlook Calendar · assignee notified in Teams' : 'Assignee notified in Teams', icon: 'add' });
+        toast({ title: 'Task created', sub: 'Assigned to ' + (FD.userById(patch.assignee) || {}).name, icon: 'add' });
       } else {
         FD.updateTask(t.id, patch);
-        toast({ title: 'Task updated', sub: 'Changes synced across Microsoft 365' });
+        toast({ title: 'Task updated', sub: 'Changes saved' });
       }
       close();
     };

@@ -129,6 +129,13 @@
     emit("tasks:changed");
   }
 
+  // Re-read tasks from storage and refresh the UI. Called by the remote sync
+  // layer (src/remote.js) when another device's changes arrive via polling.
+  function reloadTasks() {
+    state.tasks = loadTasks();
+    emit("tasks:changed");
+  }
+
   // ----- Filtering / sorting -----
   // Respects role visibility unless opts.scope === 'all' is requested by an admin.
   function filterTasks(opts) {
@@ -300,7 +307,7 @@
     userById, deptById, projectById, isAdmin,
     canSeeTask, visibleTasks, myTasks,
     daysFromToday, isOverdue, dueLabel,
-    getTask, createTask, updateTask, deleteTask, saveTasks,
+    getTask, createTask, updateTask, deleteTask, saveTasks, reloadTasks,
     filterTasks, metrics, deptStats, workloadByUser, approvalsQueue,
     memberScores, bestMemberOfMonth,
     shareCalendar, unshareCalendar, canViewCalendar, calendarsIcanView, whoIShareWith,

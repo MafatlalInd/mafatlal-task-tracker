@@ -115,34 +115,40 @@
   <!-- Toast region -->
   <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-  <!-- Scripts (no build step, no modules — runs from file://) -->
-  <script src="src/data.js"></script>
-  <script src="src/store.js"></script>
-  <script src="src/msgraph/auth.js"></script>
-  <script src="src/msgraph/graph.js"></script>
-  <script src="src/charts.js"></script>
-  <script src="src/components.js"></script>
-  <script src="src/export.js"></script>
-  <script src="src/voice.js"></script>
-  <script src="src/accounts.js"></script>
-  <script src="src/notifications.js"></script>
-  <script src="src/login.js"></script>
-  <script src="src/views/dashboard.js"></script>
-  <script src="src/views/team.js"></script>
-  <script src="src/views/analytics.js"></script>
-  <script src="src/views/influencers.js"></script>
-  <script src="src/views/expenses.js"></script>
-  <script src="src/views/tasks.js"></script>
-  <script src="src/views/board.js"></script>
-  <script src="src/views/calendar.js"></script>
-  <script src="src/views/timeline.js"></script>
-  <script src="src/views/approvals.js"></script>
-  <script src="src/views/corpcomm.js"></script>
-  <script src="src/views/documents.js"></script>
-  <script src="src/views/reports.js"></script>
-  <script src="src/views/ai.js"></script>
-  <script src="src/views/integrations.js"></script>
-  <script src="src/views/settings.js"></script>
-  <script src="src/app.js"></script>
+  <!-- Remote sync layer: pulls shared data from /api/data into localStorage,
+       then loads the app scripts below. Falls back to local cache if offline. -->
+  <script src="src/remote.js"></script>
+
+  <!-- App scripts (no build step, no modules). Marked "fd-deferred" so the
+       browser does NOT run them until remote.js has pulled server data —
+       see src/remote.js loadApp(). Order is preserved (async = false). -->
+  <script type="application/fd-deferred" data-src="src/data.js"></script>
+  <script type="application/fd-deferred" data-src="src/store.js"></script>
+  <script type="application/fd-deferred" data-src="src/msgraph/auth.js"></script>
+  <script type="application/fd-deferred" data-src="src/msgraph/graph.js"></script>
+  <script type="application/fd-deferred" data-src="src/charts.js"></script>
+  <script type="application/fd-deferred" data-src="src/components.js"></script>
+  <script type="application/fd-deferred" data-src="src/export.js"></script>
+  <script type="application/fd-deferred" data-src="src/voice.js"></script>
+  <script type="application/fd-deferred" data-src="src/accounts.js"></script>
+  <script type="application/fd-deferred" data-src="src/notifications.js"></script>
+  <script type="application/fd-deferred" data-src="src/login.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/dashboard.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/team.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/analytics.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/influencers.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/expenses.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/tasks.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/board.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/calendar.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/timeline.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/approvals.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/corpcomm.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/documents.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/reports.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/ai.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/integrations.js"></script>
+  <script type="application/fd-deferred" data-src="src/views/settings.js"></script>
+  <script type="application/fd-deferred" data-src="src/app.js"></script>
 </body>
 </html>
