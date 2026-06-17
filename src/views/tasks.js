@@ -20,7 +20,7 @@
         <div class="toolbar">
           <div class="search-box">${UI.icon('search')}<input id="qInput" placeholder="Filter tasks…" value="${filters.q}"/></div>
           <select class="select" id="fDept"><option value="all">All departments</option>${FD.data.departments.map((d) => optSel(d.id, d.name, filters.dept)).join('')}</select>
-          <select class="select" id="fStatus"><option value="all">All statuses</option>${FD.data.STATUS.map((s) => optSel(s, s, filters.status)).join('')}</select>
+          <select class="select" id="fStatus"><option value="all">All statuses</option>${optSel('open', 'Open & In Progress', filters.status)}${optSel('delayed', 'Delayed & Overdue', filters.status)}${FD.data.STATUS.map((s) => optSel(s, s, filters.status)).join('')}</select>
           <select class="select" id="fPriority"><option value="all">All priorities</option>${FD.data.PRI.map((p) => optSel(p, p, filters.priority)).join('')}</select>
           ${FD.isAdmin() ? `<select class="select" id="fAssignee"><option value="all">Anyone</option>${FD.data.users.map((u) => optSel(u.id, u.name, filters.assignee)).join('')}</select>` : ''}
           <div class="spacer"></div>
@@ -123,6 +123,12 @@
 
   function optSel(v, label, sel) { return `<option value="${v}" ${v === sel ? 'selected' : ''}>${label}</option>`; }
 
+  // Called by other views (e.g. the clickable dashboard KPI cards) to open
+  // Tasks pre-filtered. Resets all filters first, then applies the patch.
+  function setFilter(patch) {
+    Object.assign(filters, { q: '', dept: 'all', status: 'all', priority: 'all', assignee: 'all' }, patch || {});
+  }
+
   window.FD_VIEWS = window.FD_VIEWS || {};
-  window.FD_VIEWS.tasks = { title: 'Tasks', render };
+  window.FD_VIEWS.tasks = { title: 'Tasks', render, setFilter };
 })();

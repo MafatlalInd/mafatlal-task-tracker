@@ -18,10 +18,10 @@
     const todayMeetings = myMeetings.filter((mt) => mt.date === FD.data.iso(FD.data.TODAY));
 
     const kpis = [
-      { label: admin ? 'Total Tasks' : 'My Tasks', val: m.total, icon: 'tasks', color: '#e2231a' },
-      { label: 'Open', val: m.open, icon: 'inbox', color: '#ca5010' },
-      { label: 'Completed', val: m.completed, icon: 'check', color: '#107c10' },
-      { label: 'Delayed', val: m.delayed, icon: 'clock', color: '#d13438' },
+      { label: admin ? 'Total Tasks' : 'My Tasks', val: m.total, icon: 'tasks', color: '#e2231a', filter: 'all' },
+      { label: 'Open', val: m.open, icon: 'inbox', color: '#ca5010', filter: 'open' },
+      { label: 'Completed', val: m.completed, icon: 'check', color: '#107c10', filter: 'Completed' },
+      { label: 'Delayed', val: m.delayed, icon: 'clock', color: '#d13438', filter: 'delayed' },
     ];
 
     const statusColors = { 'Open': '#8a8886', 'In Progress': '#0078d4', 'Waiting for Approval': '#c19c00', 'Completed': '#107c10', 'On Hold': '#8764b8', 'Delayed': '#d13438' };
@@ -43,8 +43,8 @@
 
         <div class="grid kpi-grid" style="margin-bottom:16px">
           ${kpis.map((k) => `
-            <div class="kpi">
-              <div class="kpi-top"><span class="kpi-icon" style="background:${k.color}1a;color:${k.color}">${UI.icon(k.icon)}</span></div>
+            <div class="kpi clickable" data-filter="${k.filter}" role="button" tabindex="0" title="View ${k.label}">
+              <div class="kpi-top"><span class="kpi-icon" style="background:${k.color}1a;color:${k.color}">${UI.icon(k.icon)}</span><span class="kpi-go" aria-hidden="true">${UI.icon('chevronR')}</span></div>
               <div class="kpi-val">${k.val}</div>
               <div class="kpi-label">${k.label}</div>
             </div>`).join('')}
@@ -135,6 +135,16 @@
       </div>`;
 
     UI.hydrateIcons(root);
+    // KPI cards open Tasks pre-filtered to the matching set.
+    const openFiltered = (f) => {
+      const tv = window.FD_VIEWS.tasks;
+      if (tv && tv.setFilter) tv.setFilter({ status: f });
+      window.FD_APP.go('tasks');
+    };
+    root.querySelectorAll('.kpi[data-filter]').forEach((el) => {
+      el.onclick = () => openFiltered(el.getAttribute('data-filter'));
+      el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFiltered(el.getAttribute('data-filter')); } };
+    });
     root.querySelector('#dashNew').onclick = () => UI.openTaskPane();
     root.querySelectorAll('[data-task]').forEach((el) => el.onclick = () => UI.openTaskPane(el.getAttribute('data-task')));
     const mbtn = root.querySelector('#bestMemberProfile');

@@ -142,7 +142,13 @@
     opts = opts || {};
     let list = (opts.scope === "all" && isAdmin()) ? state.tasks.slice() : visibleTasks();
     if (opts.dept && opts.dept !== "all") list = list.filter((t) => t.dept === opts.dept);
-    if (opts.status && opts.status !== "all") list = list.filter((t) => t.status === opts.status);
+    if (opts.status && opts.status !== "all") {
+      // Grouped tokens (used by the clickable dashboard cards) match the KPI
+      // numbers exactly: "Open" = Open + In Progress, "Delayed" = Delayed + overdue.
+      if (opts.status === "open") list = list.filter((t) => t.status === "Open" || t.status === "In Progress");
+      else if (opts.status === "delayed") list = list.filter((t) => t.status === "Delayed" || isOverdue(t));
+      else list = list.filter((t) => t.status === opts.status);
+    }
     if (opts.priority && opts.priority !== "all") list = list.filter((t) => t.priority === opts.priority);
     if (opts.assignee && opts.assignee !== "all") list = list.filter((t) => t.assignee === opts.assignee);
     if (opts.project && opts.project !== "all") list = list.filter((t) => t.project === opts.project);
