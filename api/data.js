@@ -7,7 +7,7 @@
 // The client (src/remote.js) mirrors this into localStorage so the rest of
 // the app keeps working exactly as before, but data is now shared on a server
 // instead of trapped in one browser.
-const { sql, ensure } = require('./_db');
+const { ensure } = require('./_db');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,7 +17,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   try {
-    await ensure();
+    const sql = (await ensure()).sql; // ensures table exists, returns the pool
 
     if (req.method === 'GET') {
       const key = req.query && req.query.key;
