@@ -28,7 +28,7 @@
     root.querySelector('#bNew').onclick = () => UI.openTaskPane();
     root.querySelector('#bDept').onchange = (e) => { deptFilter = e.target.value; renderBoard(root); };
     renderBoard(root);
-    FD.on('tasks:changed', () => { if (document.body.contains(root)) renderBoard(root); });
+    FD.onView('tasks:changed', () => renderBoard(root));
   }
 
   function renderBoard(root) {

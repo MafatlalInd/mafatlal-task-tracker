@@ -30,6 +30,13 @@
   function meeting(root) {
     const mtg = FD.data.aiMeeting;
     const host = root.querySelector('#aiBody');
+    if (!mtg.title && !(mtg.actionItems && mtg.actionItems.length)) {
+      host.innerHTML = `<div class="banner ai" style="margin-bottom:18px">${UI.icon('sparkle')}
+        <div>After every Outlook/Teams meeting, the Tracker generates minutes, extracts action items, and lets you assign them as tasks in one click.</div></div>
+        <div class="card"><div class="empty">${UI.icon('users')}<div style="font-weight:600;color:var(--text-2)">No meeting connected yet</div>
+        <div style="font-size:12px;margin-top:4px">Connect Outlook/Teams to auto-generate minutes &amp; action items.</div></div></div>`;
+      UI.hydrateIcons(host); return;
+    }
     host.innerHTML = `
       <div class="banner ai" style="margin-bottom:18px">${UI.icon('sparkle')}
         <div>After every Outlook/Teams meeting, the Tracker generates minutes, extracts action items, and lets you assign them as tasks in one click.</div></div>
@@ -85,9 +92,8 @@
     host.innerHTML = `
       <div class="banner ai" style="margin-bottom:18px">${UI.icon('sparkle')}
         <div>The Tracker scans your Outlook inbox, detects actionable emails, and suggests a task with assignee, priority and due date — review and create.</div></div>
-      <div class="grid cols-2" id="emailGrid">
-        ${FD.data.emails.map((e) => emailCard(e)).join('')}
-      </div>`;
+      ${FD.data.emails.length ? `<div class="grid cols-2" id="emailGrid">${FD.data.emails.map((e) => emailCard(e)).join('')}</div>`
+        : `<div class="card"><div class="empty">${UI.icon('inbox')}<div style="font-weight:600;color:var(--text-2)">No inbox connected yet</div><div style="font-size:12px;margin-top:4px">Connect Outlook to detect actionable emails and turn them into tasks.</div></div></div>`}`;
     UI.hydrateIcons(host);
     FD.data.emails.forEach((e) => {
       const btn = host.querySelector(`#mk-${e.id}`);

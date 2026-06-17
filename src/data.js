@@ -80,27 +80,15 @@
   void T;
   const tasks = [];
 
-  // Recurring task templates
-  const recurringTemplates = [
-    { id: "r1", name: "Social Media Report", cadence: "Monthly", dept: "mkt", owner: "u1", next: iso(d(19)) },
-    { id: "r2", name: "Monthly MIS — Operations", cadence: "Monthly", dept: "ops", owner: "u5", next: iso(d(18)) },
-    { id: "r3", name: "Marketing Campaign Review", cadence: "Weekly", dept: "mkt", owner: "u1", next: iso(d(2)) },
-    { id: "r4", name: "Factory Branding Audit", cadence: "Quarterly", dept: "mfg", owner: "u6", next: iso(d(20)) },
-    { id: "r5", name: "Vendor Review", cadence: "Quarterly", dept: "ops", owner: "u5", next: iso(d(6)) },
-    { id: "r6", name: "Annual Compliance Filing", cadence: "Yearly", dept: "mgmt", owner: "u9", next: iso(d(120)) },
-  ];
+  // Recurring task templates — empty; the team adds their own.
+  const recurringTemplates = [];
 
   // Calendar meetings start empty — members add their own and can share
   // their calendar with colleagues who ask.
   const meetings = [];
 
-  // Outlook emails (for the AI email assistant + email-to-task)
-  const emails = [
-    { id: "e1", from: "Yash", fromEmail: "yash@mafatlals.com", subject: "Need updated pricing sheet for West zone distributors", preview: "Hi team, the West zone distributors are asking for the revised FY26 pricing sheet. Can someone prepare and send this by Friday? It's blocking two onboarding deals.", time: "8:42 AM", date: iso(d(0)), unread: true, suggest: { priority: "High", due: iso(d(3)), assignee: "u3" } },
-    { id: "e2", from: "Suresh", fromEmail: "suresh@mafatlals.com", subject: "Signage non-compliance at Nashik gate 2", preview: "Found outdated branding at gate 2 during the walkthrough. We should add this to the audit action list and get the vendor to replace it before the management visit.", time: "Yesterday", date: iso(d(-1)), unread: true, suggest: { priority: "Medium", due: iso(d(5)), assignee: "u6" } },
-    { id: "e3", from: "Ishita", fromEmail: "ishita@mafatlals.com", subject: "Press release approval needed", preview: "The sustainability press release draft is ready for legal + management review. Please review and approve so we can publish on schedule.", time: "Yesterday", date: iso(d(-1)), unread: false, suggest: { priority: "Medium", due: iso(d(4)), assignee: "u2" } },
-    { id: "e4", from: "Karan", fromEmail: "karan@mafatlals.com", subject: "VPN access requests piling up", preview: "We have 12 pending VPN access requests from the new joiners. Need someone to process these this week before they start.", time: "Mon", date: iso(d(-2)), unread: false, suggest: { priority: "Low", due: iso(d(6)), assignee: "u7" } },
-  ];
+  // Outlook emails (for the AI email assistant) — empty until inbox is connected.
+  const emails = [];
 
   const notifications = [];
 
@@ -109,154 +97,32 @@
   // Corp Comm pipeline items start empty.
   const commItems = [];
 
-  // AI meeting -> minutes of meeting + action items
-  const aiMeeting = {
-    title: "Management Review — May MIS",
-    date: iso(d(0)),
-    attendees: ["u9", "u5", "u7", "u1"],
-    summary: "The leadership team reviewed May operational performance. Overall task completion improved to 78%, but IT flagged a delay in the ERP finance migration that risks the audit timeline. Marketing confirmed the Monsoon campaign is on track for launch. Operations raised a vendor SLA concern with two print partners.",
-    actionItems: [
-      { text: "Escalate ERP finance migration delay and re-baseline timeline", owner: "u7", priority: "Critical", due: iso(d(2)) },
-      { text: "Prepare vendor SLA breach summary for the two print partners", owner: "u5", priority: "High", due: iso(d(4)) },
-      { text: "Share final Monsoon launch calendar with leadership", owner: "u1", priority: "Medium", due: iso(d(3)) },
-      { text: "Circulate May MIS deck to all department heads", owner: "u5", priority: "Low", due: iso(d(1)) },
-    ],
-  };
+  // AI meeting (minutes + action items) — empty until a meeting is connected.
+  const aiMeeting = { title: "", date: iso(d(0)), attendees: [], summary: "", actionItems: [] };
 
-  // ----- Marketing analytics (mock — Google Analytics / Search Console / Meta) -----
-  // Demo data showing healthy growth. Replace with live API data once connected.
+  // ----- Marketing analytics -----
+  // Empty by default — connect accounts (or a backend) to populate with live data.
+  const noDelta = { delta: "—", up: true };
+  const months6 = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
   const marketing = {
-    trafficTrend: [
-      { label: "Jan", users: 8200, sessions: 11200 },
-      { label: "Feb", users: 9100, sessions: 12800 },
-      { label: "Mar", users: 10400, sessions: 14600 },
-      { label: "Apr", users: 11800, sessions: 16900 },
-      { label: "May", users: 13200, sessions: 18800 },
-      { label: "Jun", users: 15600, sessions: 22400 },
-    ],
-    ga: {
-      users: { value: "15,600", delta: "+18.2%", up: true },
-      sessions: { value: "22,400", delta: "+19.1%", up: true },
-      pageviews: { value: "68,900", delta: "+15.4%", up: true },
-      engagement: { value: "2m 14s", delta: "+8.0%", up: true },
-      bounce: { value: "38.2%", delta: "-4.1%", up: true },
-      conversions: { value: "412", delta: "+22.0%", up: true },
-    },
-    sources: [
-      { name: "Organic Search", value: 46, color: "#107c10" },
-      { name: "Direct", value: 22, color: "#0078d4" },
-      { name: "Social", value: 18, color: "#5b5fc7" },
-      { name: "Referral", value: 9, color: "#c19c00" },
-      { name: "Paid", value: 5, color: "#e2231a" },
-    ],
-    topPages: [
-      { path: "/", views: 18400, change: "+12%" },
-      { path: "/monsoon-collection", views: 11200, change: "+64%" },
-      { path: "/products/suiting", views: 8600, change: "+9%" },
-      { path: "/sustainability", views: 6100, change: "+38%" },
-      { path: "/about", views: 4200, change: "+3%" },
-      { path: "/contact", views: 2800, change: "-2%" },
-    ],
-    search: {
-      clicks: { value: "9,840", delta: "+24%", up: true },
-      impressions: { value: "312K", delta: "+16%", up: true },
-      ctr: { value: "3.2%", delta: "+0.5pt", up: true },
-      position: { value: "12.4", delta: "-1.7", up: true },
-      queries: [
-        { q: "mafatlal fabrics", clicks: 1840, impr: 28400, pos: 2.1 },
-        { q: "mafatlal suiting", clicks: 1320, impr: 22100, pos: 3.4 },
-        { q: "premium shirting india", clicks: 890, impr: 41200, pos: 8.7 },
-        { q: "monsoon collection 2026", clicks: 760, impr: 18900, pos: 5.2 },
-        { q: "sustainable textiles brand", clicks: 540, impr: 33600, pos: 11.3 },
-      ],
-    },
-    meta: {
-      reach: { value: "184K", delta: "+31%", up: true },
-      engagement: { value: "12.4K", delta: "+19%", up: true },
-      followers: { value: "48,200", delta: "+1,840", up: true },
-      growth: [
-        { label: "Wk1", value: 46200 },
-        { label: "Wk2", value: 46700 },
-        { label: "Wk3", value: 47300 },
-        { label: "Wk4", value: 48200 },
-      ],
-      posts: [
-        { title: "Monsoon launch reel", reach: 62400, eng: 4820, type: "Reel" },
-        { title: "Sustainability milestone", reach: 38100, eng: 2940, type: "Post" },
-        { title: "Behind the scenes — mill", reach: 24600, eng: 1810, type: "Story" },
-        { title: "Festive teaser", reach: 19800, eng: 1560, type: "Reel" },
-      ],
-    },
-    campaigns: [
-      { name: "Monsoon 2026 Launch", channel: "Multi-channel", ch: "multi", status: "Active", budget: 1200000, spend: 740000, reach: 420000, conv: 1240, owner: "u1", start: iso(d(-12)), end: iso(d(34)) },
-      { name: "Sustainability Story", channel: "Social + PR", ch: "pr", status: "Active", budget: 450000, spend: 180000, reach: 156000, conv: 380, owner: "u2", start: iso(d(-6)), end: iso(d(24)) },
-      { name: "Festive Teaser", channel: "Meta Ads", ch: "paid", status: "Scheduled", budget: 800000, spend: 0, reach: 0, conv: 0, owner: "u8", start: iso(d(12)), end: iso(d(44)) },
-      { name: "Brand Refresh — Display", channel: "Display + Search", ch: "display", status: "Active", budget: 600000, spend: 410000, reach: 285000, conv: 720, owner: "u1", start: iso(d(-22)), end: iso(d(18)) },
-      { name: "Influencer Pilot — Reels", channel: "Influencer", ch: "influencer", status: "Active", budget: 500000, spend: 385000, reach: 92000, conv: 115, owner: "u8", start: iso(d(-9)), end: iso(d(11)) },
-      { name: "Diwali Pre-buzz", channel: "Influencer", ch: "influencer", status: "Planned", budget: 950000, spend: 0, reach: 0, conv: 0, owner: "u10", start: iso(d(28)), end: iso(d(78)) },
-    ],
-    // Content calendar — production → publish windows per piece.
-    contentSchedule: [
-      { title: "Monsoon hero reel", type: "Social", owner: "u8", start: iso(d(-2)), end: iso(d(3)) },
-      { title: "Sustainability blog post", type: "SEO", owner: "u10", start: iso(d(0)), end: iso(d(6)) },
-      { title: "June newsletter", type: "Email", owner: "u10", start: iso(d(1)), end: iso(d(5)) },
-      { title: "Festive teaser ad creatives", type: "Paid", owner: "u8", start: iso(d(6)), end: iso(d(13)) },
-      { title: "Influencer reel — activewear", type: "Influencer", owner: "u1", start: iso(d(3)), end: iso(d(9)) },
-      { title: "Homepage banner refresh", type: "Design", owner: "u8", start: iso(d(2)), end: iso(d(7)) },
-      { title: "Diwali campaign concept", type: "Social", owner: "u1", start: iso(d(14)), end: iso(d(24)) },
-      { title: "Product launch PR note", type: "PR", owner: "u2", start: iso(d(10)), end: iso(d(16)) },
-    ],
-    // Numeric bases (combined "All accounts" totals) used to derive per-account figures.
-    gaNum: { users: 15600, sessions: 22400, pageviews: 68900, conversions: 412 },
-    metaNum: { reach: 184000, engagement: 12400, followers: 48200, spend: 0 },
-    // Default connected accounts (share = portion of the combined total).
-    gaAccounts: [
-      { id: "ga1", name: "Mafatlal — Corporate Website", mid: "G-MFTL00001", share: 0.52 },
-      { id: "ga2", name: "Mafatlal Shop (E-commerce)", mid: "G-MFTL00002", share: 0.33 },
-      { id: "ga3", name: "Monsoon Campaign Microsite", mid: "G-MFTL00003", share: 0.15 },
-    ],
-    metaAccounts: [
-      { id: "meta1", name: "Mafatlal Fabrics — Meta Ads", acc: "act_100200300", share: 0.46, spend: 740000 },
-      { id: "meta2", name: "Mafatlal Retail — Meta Ads", acc: "act_100200400", share: 0.34, spend: 410000 },
-      { id: "meta3", name: "Mafatlal Home — Meta Ads", acc: "act_100200500", share: 0.20, spend: 180000 },
-    ],
-    gscNum: { clicks: 9840, impressions: 312000 },
-    gscAccounts: [
-      { id: "gsc1", name: "mafatlals.com (Corporate)", site: "https://www.mafatlals.com/", share: 0.58 },
-      { id: "gsc2", name: "shop.mafatlals.com", site: "https://shop.mafatlals.com/", share: 0.30 },
-      { id: "gsc3", name: "Monsoon microsite", site: "https://monsoon.mafatlals.com/", share: 0.12 },
-    ],
-    // Meta Business accounts (Facebook Pages / Instagram) — organic post performance.
-    metaBizNum: { reach: 184000, engagement: 12400, followers: 48200 },
-    metaBizAccounts: [
-      { id: "fbpg", name: "Mafatlal — Facebook Page", biz: "1789045210", share: 0.46 },
-      { id: "igpg", name: "Mafatlal — Instagram", biz: "@mafatlal_official", share: 0.40 },
-      { id: "fbhome", name: "Mafatlal Home — Facebook", biz: "2204117788", share: 0.14 },
-    ],
-    // Past performance — monthly post reach/engagement trend.
-    postTrend: [
-      { label: "Jan", reach: 96000, eng: 6100 },
-      { label: "Feb", reach: 112000, eng: 7300 },
-      { label: "Mar", reach: 134000, eng: 8800 },
-      { label: "Apr", reach: 151000, eng: 10200 },
-      { label: "May", reach: 168000, eng: 11400 },
-      { label: "Jun", reach: 184000, eng: 12400 },
-    ],
-    // Past performance — individual posts with dates, tagged to a brand page.
-    pastPosts: [
-      { date: "2026-06-08", acct: "igpg", title: "Monsoon launch reel", type: "Reel", reach: 62400, likes: 3820, comments: 640, shares: 360 },
-      { date: "2026-06-05", acct: "fbpg", title: "Monsoon collection album", type: "Album", reach: 41200, likes: 2140, comments: 310, shares: 420 },
-      { date: "2026-06-02", acct: "fbpg", title: "Sustainability milestone", type: "Post", reach: 38100, likes: 1980, comments: 520, shares: 440 },
-      { date: "2026-05-28", acct: "igpg", title: "Behind the scenes — mill", type: "Story", reach: 24600, likes: 1410, comments: 210, shares: 190 },
-      { date: "2026-05-22", acct: "fbhome", title: "Home linen lookbook", type: "Carousel", reach: 18700, likes: 1120, comments: 180, shares: 240 },
-      { date: "2026-05-18", acct: "igpg", title: "Festive teaser", type: "Reel", reach: 19800, likes: 1190, comments: 170, shares: 200 },
-      { date: "2026-05-12", acct: "fbpg", title: "Heritage story — 1905", type: "Reel", reach: 41200, likes: 2460, comments: 480, shares: 420 },
-      { date: "2026-05-06", acct: "fbhome", title: "Bedsheet care tips", type: "Post", reach: 12400, likes: 640, comments: 150, shares: 90 },
-      { date: "2026-04-28", acct: "igpg", title: "New collection carousel", type: "Carousel", reach: 28700, likes: 1610, comments: 330, shares: 270 },
-      { date: "2026-04-20", acct: "fbpg", title: "Customer spotlight", type: "Post", reach: 15400, likes: 820, comments: 210, shares: 150 },
-      { date: "2026-04-12", acct: "fbhome", title: "Festive home decor", type: "Reel", reach: 22100, likes: 1340, comments: 260, shares: 310 },
-      { date: "2026-03-30", acct: "igpg", title: "Eco-fabric explainer", type: "Post", reach: 17900, likes: 910, comments: 240, shares: 140 },
-    ],
+    trafficTrend: months6.map((label) => ({ label, users: 0, sessions: 0 })),
+    ga: { users: noDelta, sessions: noDelta, pageviews: noDelta, engagement: { value: "—", delta: "—", up: true }, bounce: { value: "—", delta: "—", up: true }, conversions: noDelta },
+    sources: [],
+    topPages: [],
+    search: { clicks: noDelta, impressions: noDelta, ctr: { value: "—", delta: "—", up: true }, position: { value: "—", delta: "—", up: true }, queries: [] },
+    meta: { reach: noDelta, engagement: noDelta, followers: noDelta, growth: [], posts: [] },
+    campaigns: [],
+    contentSchedule: [],
+    gaNum: { users: 0, sessions: 0, pageviews: 0, conversions: 0 },
+    metaNum: { reach: 0, engagement: 0, followers: 0, spend: 0 },
+    gaAccounts: [],
+    metaAccounts: [],
+    gscNum: { clicks: 0, impressions: 0 },
+    gscAccounts: [],
+    metaBizNum: { reach: 0, engagement: 0, followers: 0 },
+    metaBizAccounts: [],
+    postTrend: months6.map((label) => ({ label, reach: 0, eng: 0 })),
+    pastPosts: [],
   };
 
   // Completion trend buckets (filled in live from real tasks by the store).
@@ -269,14 +135,8 @@
     { label: "W6", created: 0, completed: 0 },
   ];
 
-  // Influencer directory — details + collaboration charges (₹), per platform.
-  const influencers = [
-    { id: "inf1", name: "Aisha Khanna", platform: "Instagram", handle: "@aisha.styles", url: "", category: "Fashion & Lifestyle", followers: 185000, email: "aisha.collab@example.com", phone: "+91 98200 11223", rateAmount: 45000, rateUnit: "Reel", status: "Active", managedBy: "u8", notes: "Strong festive-fashion engagement." },
-    { id: "inf2", name: "Rohan Reviews", platform: "YouTube", handle: "RohanReviews", url: "", category: "Tech & Reviews", followers: 420000, email: "team@rohanreviews.in", phone: "", rateAmount: 120000, rateUnit: "Video", status: "Active", managedBy: "u1", notes: "Long-form product features." },
-    { id: "inf3", name: "Sara Kapoor", platform: "Instagram", handle: "@sara.home", url: "", category: "Home & Decor", followers: 96000, email: "sara.home@example.com", phone: "+91 99300 44556", rateAmount: 28000, rateUnit: "Post", status: "Prospect", managedBy: "u8", notes: "Good fit for Mafatlal Home." },
-    { id: "inf4", name: "Vikram Fit", platform: "Instagram", handle: "@vikram.fitness", url: "", category: "Fitness & Wellness", followers: 240000, email: "vikram@example.com", phone: "", rateAmount: 60000, rateUnit: "Reel", status: "Past", managedBy: "u1", notes: "Worked on summer activewear." },
-    { id: "inf5", name: "Neha Trends", platform: "Facebook", handle: "NehaTrends", url: "", category: "Fashion", followers: 130000, email: "neha@example.com", phone: "+91 90040 88990", rateAmount: 35000, rateUnit: "Post", status: "Active", managedBy: "u10", notes: "" },
-  ];
+  // Influencer directory — empty; the team adds their own.
+  const influencers = [];
 
   window.FD_DATA = {
     TODAY, iso, departments, users, projects, tasks, recurringTemplates,

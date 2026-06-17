@@ -17,6 +17,7 @@
   function go(route) {
     if (!VIEWS[route]) route = 'dashboard';
     if (ADMIN_ONLY[route] && !FD.isAdmin()) route = 'dashboard';
+    FD.clearViewListeners();   // drop the previous view's subscriptions (prevents leaks + stale-DOM errors)
     current = route;
     if (location.hash !== '#' + route) location.hash = route;
     // active nav

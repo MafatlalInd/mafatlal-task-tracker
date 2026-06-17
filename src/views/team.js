@@ -30,7 +30,7 @@
     root.querySelector('#teamAddMember').onclick = () => window.FD_VIEWS.settings.addMemberModal(root);
     root.querySelector('#teamDept').onchange = (e) => paint(root, e.target.value);
     paint(root, 'all');
-    FD.on('tasks:changed', () => { if (document.body.contains(root)) paint(root, root.querySelector('#teamDept').value); });
+    FD.onView('tasks:changed', () => { const dd = root.querySelector('#teamDept'); if (dd) paint(root, dd.value); });
   }
 
   function paint(root, dept) {

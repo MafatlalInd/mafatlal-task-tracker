@@ -46,7 +46,7 @@
   }
 
   // ---- Account storage (multiple per connector) ----
-  const ACCTS_KEY = 'fd-mkt-accounts', SEL_KEY = 'fd-mkt-selected', CONN_KEY = 'fd-mkt-connections';
+  const ACCTS_KEY = 'fd-mkt-accounts-v2', SEL_KEY = 'fd-mkt-selected', CONN_KEY = 'fd-mkt-connections';
   function allAccounts() {
     let store = null;
     try { store = JSON.parse(localStorage.getItem(ACCTS_KEY)); } catch (e) {}

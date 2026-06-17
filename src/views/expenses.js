@@ -8,7 +8,7 @@
    ============================================================ */
 (function () {
   const FD = window.FD, UI = window.FD_UI, C = window.FD_CHARTS;
-  const KEY = 'fd-expenses-v1';
+  const KEY = 'fd-expenses-v2';
 
   const DIVS = [
     { id: 'health', name: 'Healthcare', color: '#107c10' },
@@ -55,13 +55,7 @@
 
   function load() { try { return JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { return {}; } }
   function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
-  function monthData(m) {
-    const all = load();
-    if (all[m]) return all[m];
-    if (m === SEED_MONTH) { all[m] = JSON.parse(JSON.stringify(SEED)); save(all); return all[m]; }
-    if (m === SEED_PREV_MONTH) { all[m] = buildPrev(); save(all); return all[m]; }
-    return {};
-  }
+  function monthData(m) { return load()[m] || {}; }   // starts empty; admin enters amounts
   function cell(m, div, key) { return ((monthData(m)[div] || {})[key]) || 0; }
   function setCell(m, div, key, val) { const all = load(); all[m] = all[m] || {}; all[m][div] = all[m][div] || {}; all[m][div][key] = val; save(all); }
 

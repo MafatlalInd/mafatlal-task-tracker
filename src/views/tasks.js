@@ -36,7 +36,7 @@
 
     root.querySelector('#newBtn').onclick = () => UI.openTaskPane();
     root.querySelector('#exportBtn').onclick = () => UI.toast({ title: 'Exported to Excel', sub: 'Tasks_Export.xlsx saved to OneDrive', icon: 'download' });
-    FD.on('tasks:changed', () => { if (document.body.contains(root)) renderTable(root); });
+    FD.onView('tasks:changed', () => renderTable(root));
   }
 
   function bindToolbar(root) {

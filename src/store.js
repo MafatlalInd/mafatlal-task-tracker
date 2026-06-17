@@ -7,8 +7,17 @@
   const data = window.FD_DATA;
 
   const listeners = {};
-  function on(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); }
-  function emit(evt, payload) { (listeners[evt] || []).forEach((fn) => fn(payload)); (listeners["*"] || []).forEach((fn) => fn(evt, payload)); }
+  const viewSubs = [];   // subscriptions owned by the active view, cleared on navigation
+  function on(evt, fn) { (listeners[evt] = listeners[evt] || []).push(fn); return () => off(evt, fn); }
+  function off(evt, fn) { const a = listeners[evt]; if (a) { const i = a.indexOf(fn); if (i > -1) a.splice(i, 1); } }
+  // View-scoped: auto-removed when the router navigates away (see clearViewListeners).
+  function onView(evt, fn) { on(evt, fn); viewSubs.push({ evt, fn }); }
+  function clearViewListeners() { viewSubs.forEach((s) => off(s.evt, s.fn)); viewSubs.length = 0; }
+  // Crash-proof: one throwing listener can never break the emitter (or task creation).
+  function emit(evt, payload) {
+    (listeners[evt] || []).slice().forEach((fn) => { try { fn(payload); } catch (e) { console.warn('[emit] ' + evt + ' listener error:', e); } });
+    (listeners["*"] || []).slice().forEach((fn) => { try { fn(evt, payload); } catch (e) {} });
+  }
 
   // ----- Persistence (per browser; swap for a backend later) -----
   const TASKS_KEY = "fd-tasks-v1";
@@ -287,7 +296,7 @@
   };
 
   window.FD = {
-    state, data, on, emit,
+    state, data, on, off, onView, clearViewListeners, emit,
     userById, deptById, projectById, isAdmin,
     canSeeTask, visibleTasks, myTasks,
     daysFromToday, isOverdue, dueLabel,

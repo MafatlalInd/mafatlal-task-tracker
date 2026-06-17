@@ -5,7 +5,7 @@
    ============================================================ */
 (function () {
   const FD = window.FD, UI = window.FD_UI;
-  const KEY = "fd-influencers-v1";
+  const KEY = "fd-influencers-v2";
   const PLATFORMS = ["Instagram", "YouTube", "Facebook", "X (Twitter)", "LinkedIn", "Other"];
   const UNITS = ["Post", "Reel", "Video", "Story", "Campaign", "Month"];
   const STATUSES = ["Prospect", "Active", "Past"];

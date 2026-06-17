@@ -28,7 +28,7 @@
       </div>`;
     UI.hydrateIcons(root);
     paint(root);
-    FD.on('tasks:changed', () => { if (document.body.contains(root)) { const q = FD.approvalsQueue(); root.querySelector('.page-sub').innerHTML = `${q.length} item${q.length !== 1 ? 's' : ''} awaiting your decision · approval requests arrive via Outlook`; paint(root); } });
+    FD.onView('tasks:changed', () => { const sub = root.querySelector('.page-sub'); if (!sub) return; const q = FD.approvalsQueue(); sub.innerHTML = `${q.length} item${q.length !== 1 ? 's' : ''} awaiting your decision · approval requests arrive via Outlook`; paint(root); });
   }
 
   function paint(root) {
