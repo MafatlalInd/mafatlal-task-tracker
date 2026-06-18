@@ -21,6 +21,15 @@
   }
   function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
   function all() { return load(); }
+  // Each member sees only the influencers they manage; admin sees everyone's.
+  // The stored list always holds every member's records (so saves never drop
+  // another member's data) — we only filter what's shown.
+  function visibleList() {
+    const list = all();
+    if (FD.isAdmin()) return list;
+    const me = FD.state.currentUser;
+    return list.filter((i) => i.managedBy === me);
+  }
   function fmt(n) { return "₹" + (n >= 100000 ? (n / 100000).toFixed(n % 100000 ? 1 : 0) + "L" : Number(n).toLocaleString("en-IN")); }
   function kfollowers(n) { return n >= 1000 ? (n / 1000).toFixed(n >= 100000 ? 0 : 1) + "K" : String(n); }
 
@@ -31,6 +40,7 @@
           <div><h1 class="page-title">${UI.icon('megaphone')} Influencers</h1>
             <div class="page-sub">Influencer directory &amp; collaboration charges</div></div>
           <div class="page-actions">
+            <button class="btn" id="infImport">${UI.icon('inbox')} Import CSV</button>
             <button class="btn" id="infExport">${UI.icon('download')} Export CSV</button>
             <button class="btn primary" id="addInf">${UI.icon('add')} Add influencer</button>
           </div>
@@ -45,6 +55,7 @@
       </div>`;
     UI.hydrateIcons(root);
     root.querySelector('#addInf').onclick = () => editModal(null, root);
+    root.querySelector('#infImport').onclick = () => importModal(root);
     root.querySelector('#infExport').onclick = () => {
       const rows = filtered();
       window.FD_EXPORT.csv('Influencers_' + window.FD_EXPORT.today() + '.csv',
@@ -59,7 +70,7 @@
   }
 
   function filtered() {
-    let list = all();
+    let list = visibleList();
     if (filters.platform !== "all") list = list.filter((i) => i.platform === filters.platform);
     if (filters.status !== "all") list = list.filter((i) => i.status === filters.status);
     if (filters.q) {
@@ -70,7 +81,7 @@
   }
 
   function paint(root) {
-    const list = all();
+    const list = visibleList();
     const active = list.filter((i) => i.status === "Active");
     const totalReach = list.reduce((s, i) => s + (i.followers || 0), 0);
     const activeSpend = active.reduce((s, i) => s + (i.rateAmount || 0), 0);
@@ -195,6 +206,135 @@
       foot: `<button class="btn subtle" data-close>Cancel</button><button class="btn danger" id="rmGo">${UI.icon('trash')} Remove</button>`,
       onMount: (m, close) => {
         m.querySelector('#rmGo').onclick = () => { save(all().filter((x) => x.id !== i.id)); UI.toast({ title: 'Influencer removed', kind: 'warn' }); close(); paint(root); };
+      },
+    });
+  }
+
+  // ---- CSV import ----------------------------------------------------------
+  // Tolerant CSV parser: handles quoted fields, escaped quotes, CRLF, and a BOM.
+  function parseCSV(text) {
+    text = String(text || '').replace(/^﻿/, '');
+    const rows = []; let row = [], cur = '', inQ = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQ) {
+        if (c === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else inQ = false; }
+        else cur += c;
+      } else if (c === '"') inQ = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else if (c !== '\r') cur += c;
+    }
+    if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+    return rows.filter((r) => r.some((c) => c.trim() !== ''));
+  }
+
+  // Turn parsed rows into influencer records owned by the right member.
+  function buildRecords(rows) {
+    if (!rows.length) return [];
+    const norm = (s) => String(s || '').trim();
+    const inSet = (v, set, dflt) => { const m = set.find((x) => x.toLowerCase() === norm(v).toLowerCase()); return m || dflt; };
+    const header = rows[0].map((h) => h.trim().toLowerCase());
+    const looksHeader = header.some((h) => h === 'name' || h.indexOf('name') > -1) &&
+      header.some((h) => /platform|handle|charge|follower|status/.test(h));
+    const find = (...names) => { for (const n of names) { const k = header.findIndex((h) => h.indexOf(n) > -1); if (k > -1) return k; } return -1; };
+    let idx, dataRows;
+    if (looksHeader) {
+      idx = { name: find('name'), platform: find('platform'), handle: find('handle', 'username'), url: find('url', 'profile'),
+        category: find('category', 'niche'), followers: find('follower'), rate: find('charge', 'rate', 'amount'),
+        unit: find('per', 'unit'), status: find('status'), managed: find('managed'), email: find('email'),
+        phone: find('phone', 'mobile'), notes: find('note') };
+      dataRows = rows.slice(1);
+    } else { // positional, matching the Export column order
+      idx = { name: 0, platform: 1, handle: 2, category: 3, followers: 4, rate: 5, unit: 6, status: 7, managed: 8, email: 9, phone: 10, notes: 11, url: -1 };
+      dataRows = rows;
+    }
+    const cell = (r, k) => (k > -1 && k < r.length ? norm(r[k]) : '');
+    const admin = FD.isAdmin(), me = FD.state.currentUser;
+    const owner = (nameCell) => {
+      if (!admin) return me;                       // members can only own their own
+      const n = norm(nameCell).toLowerCase();
+      if (!n) return me;
+      const u = FD.data.users.find((x) => !x.isAdmin && x.name.toLowerCase() === n);
+      return u ? u.id : me;
+    };
+    const out = [];
+    dataRows.forEach((r, n) => {
+      const name = cell(r, idx.name);
+      if (!name) return;
+      out.push({
+        id: 'inf' + Date.now().toString(36) + n + Math.random().toString(36).slice(2, 5),
+        name,
+        platform: inSet(cell(r, idx.platform), PLATFORMS, 'Other'),
+        handle: cell(r, idx.handle), url: cell(r, idx.url),
+        category: cell(r, idx.category),
+        followers: parseInt(cell(r, idx.followers).replace(/[^0-9]/g, ''), 10) || 0,
+        rateAmount: parseInt(cell(r, idx.rate).replace(/[^0-9]/g, ''), 10) || 0,
+        rateUnit: inSet(cell(r, idx.unit), UNITS, 'Post'),
+        email: cell(r, idx.email), phone: cell(r, idx.phone),
+        status: inSet(cell(r, idx.status), STATUSES, 'Prospect'),
+        managedBy: owner(cell(r, idx.managed)),
+        notes: cell(r, idx.notes),
+      });
+    });
+    return out;
+  }
+
+  // Generates a starter CSV (header + two example rows) on the fly.
+  function downloadTemplate() {
+    window.FD_EXPORT.csv('influencers-template.csv',
+      ['Name', 'Platform', 'Handle', 'Category', 'Followers', 'Charge (INR)', 'Per', 'Status', 'Managed by', 'Email', 'Phone', 'Notes'],
+      [
+        ['Aisha Khanna', 'Instagram', '@aisha.khanna', 'Fashion & Lifestyle', '150000', '45000', 'Reel', 'Active', '', 'aisha@example.com', '+91 90000 11111', 'Example row — delete before importing'],
+        ['Rohan Mehta', 'YouTube', '@rohanmehtavlogs', 'Tech & Gadgets', '320000', '80000', 'Video', 'Prospect', '', 'rohan@example.com', '+91 90000 22222', 'Example row — delete before importing'],
+      ]);
+    UI.toast({ title: 'Template downloaded', sub: 'Fill it in, then import here', icon: 'download', kind: 'ok' });
+  }
+
+  function importModal(root) {
+    const admin = FD.isAdmin();
+    UI.modal({
+      title: 'Import influencers', width: 580,
+      body: `
+        <p class="muted" style="margin-top:0;font-size:13px;line-height:1.5">
+          Upload or paste a CSV. A header row is recommended; columns can be in any order:<br>
+          <code>Name, Platform, Handle, Category, Followers, Charge (INR), Per, Status, Email, Phone, Notes</code><br>
+          ${admin ? 'Add a <b>Managed by</b> column (member name) to assign owners — unknown names are assigned to you.' : 'All imported influencers are added to <b>your</b> list only.'}
+          Existing data is kept — imports are added on top.
+        </p>
+        <div style="margin-bottom:12px"><button class="btn subtle sm" id="impTemplate">${UI.icon('download')} Download template</button>
+          <span class="muted" style="font-size:12px;margin-left:8px">New to this? Start here.</span></div>
+        <div class="field"><label>CSV file</label><input class="input" type="file" id="impFile" accept=".csv,text/csv" style="width:100%"/></div>
+        <div class="field"><label>…or paste CSV text</label><textarea id="impText" placeholder="Name,Platform,Handle,Category,Followers,Charge (INR),Per,Status,Email,Phone,Notes&#10;Aisha Khanna,Instagram,@aisha,Fashion,150000,45000,Reel,Active,aisha@mail.com,+91 90000 00000,Great fit" style="min-height:120px"></textarea></div>
+        <div id="impPreview" class="muted" style="font-size:12px;min-height:16px"></div>`,
+      foot: `<button class="btn subtle" data-close>Cancel</button><button class="btn primary" id="impGo">${UI.icon('inbox')} Import</button>`,
+      onMount: (m, close) => {
+        const ta = m.querySelector('#impText'), pv = m.querySelector('#impPreview');
+        m.querySelector('#impTemplate').onclick = downloadTemplate;
+        function preview() {
+          const txt = (ta.value || '').trim();
+          if (!txt) { pv.textContent = ''; return; }
+          let recs = []; try { recs = buildRecords(parseCSV(txt)); } catch (e) {}
+          pv.textContent = recs.length ? (recs.length + ' influencer' + (recs.length > 1 ? 's' : '') + ' ready to import.') : 'No valid rows detected yet.';
+        }
+        m.querySelector('#impFile').onchange = (e) => {
+          const f = e.target.files && e.target.files[0]; if (!f) return;
+          const rd = new FileReader();
+          rd.onload = () => { ta.value = String(rd.result || ''); preview(); };
+          rd.readAsText(f);
+        };
+        ta.oninput = preview;
+        m.querySelector('#impGo').onclick = () => {
+          const txt = (ta.value || '').trim();
+          if (!txt) { UI.toast({ title: 'Add a CSV file or paste text first', kind: 'err' }); return; }
+          let recs = []; try { recs = buildRecords(parseCSV(txt)); } catch (e) {}
+          if (!recs.length) { UI.toast({ title: 'No valid rows found', sub: 'Check that a Name column is present', kind: 'err' }); return; }
+          const list = all();
+          recs.forEach((r) => list.unshift(r));
+          save(list);
+          UI.toast({ title: recs.length + ' influencer' + (recs.length > 1 ? 's' : '') + ' imported', sub: admin ? 'Visible across the team' : 'Added to your list', kind: 'ok', icon: 'inbox' });
+          close(); paint(root);
+        };
       },
     });
   }

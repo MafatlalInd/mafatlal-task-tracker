@@ -129,6 +129,24 @@
     }, INTERVAL);
   }
 
+  // ---- One-time migration: upload local data the server doesn't have yet ----
+  // The sync layer pushes on every save and pulls on load, but data created
+  // BEFORE sync was enabled only lives in this browser. Without this, those
+  // tasks/expenses/etc. would be stranded here and invisible on other devices.
+  // We only push keys the server is missing — never overwrite newer server data.
+  function pushLocalOnlyKeys(serverData) {
+    serverData = serverData || {};
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      if (!shouldSync(key)) continue;
+      if (Object.prototype.hasOwnProperty.call(serverData, key)) continue; // server already has it
+      var raw = native.get(key);
+      if (raw == null) continue;
+      push(key, raw);
+      lastSnapshot[key] = raw; // so the poller doesn't treat our own upload as a remote change
+    }
+  }
+
   // ---- Boot sequence ----
   function boot() {
     var done = false;
@@ -142,10 +160,14 @@
     // fall back to the local cache after a short timeout.
     var safety = setTimeout(go, 4000);
     pullAll()
-      .then(function () { clearTimeout(safety); go(); })
+      .then(function (serverData) {
+        clearTimeout(safety);
+        pushLocalOnlyKeys(serverData); // migrate pre-existing local data up
+        go();
+      })
       .catch(function () { clearTimeout(safety); go(); });
   }
 
-  window.FD_REMOTE = { pullAll: pullAll, push: push };
+  window.FD_REMOTE = { pullAll: pullAll, push: push, pushLocalOnlyKeys: pushLocalOnlyKeys };
   boot();
 })();
