@@ -19,14 +19,37 @@
     (listeners["*"] || []).slice().forEach((fn) => { try { fn(evt, payload); } catch (e) {} });
   }
 
-  // ----- Persistence (per browser; swap for a backend later) -----
+  // ----- Persistence (shared backend via src/remote.js → /api/data) -----
   const TASKS_KEY = "fd-tasks-v1";
+
+  // Collision-resistant task id. A per-session counter (the old approach)
+  // breaks now that multiple devices share one backend — two devices would
+  // both mint "T-2000". Timestamp + randomness makes every id globally unique.
+  function genTaskId() {
+    return "T-" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  // Repair any duplicate / missing ids in a task list (keeps the first, re-ids
+  // the rest). Returns true if anything changed so the caller can persist.
+  function dedupeIds(list) {
+    const seen = Object.create(null);
+    let changed = false;
+    for (let i = 0; i < list.length; i++) {
+      const t = list[i];
+      if (!t.id || seen[t.id]) { t.id = genTaskId(); changed = true; }
+      seen[t.id] = true;
+    }
+    return changed;
+  }
+
   function loadTasks() {
+    let list;
     try {
       const raw = localStorage.getItem(TASKS_KEY);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return data.tasks.slice();
+      list = raw ? JSON.parse(raw) : data.tasks.slice();
+    } catch (e) { list = data.tasks.slice(); }
+    if (!Array.isArray(list)) list = data.tasks.slice();
+    return list;
   }
   function saveTasks() {
     try { localStorage.setItem(TASKS_KEY, JSON.stringify(state.tasks)); } catch (e) {}
@@ -39,8 +62,10 @@
     notifications: data.notifications.slice(),
     documents: data.documents.slice(),
     theme: "light",
-    nextId: 2000,
   };
+  // Heal any duplicate ids inherited from the old per-session counter, then
+  // persist the repair so every device converges on unique ids.
+  if (dedupeIds(state.tasks)) saveTasks();
 
   // ----- Lookups -----
   const userById = (id) => data.users.find((u) => u.id === id);
@@ -89,7 +114,7 @@
 
   function createTask(t) {
     const task = Object.assign({
-      id: "T-" + state.nextId++,
+      id: genTaskId(),
       progress: 0, tags: [], attachments: [], status: "Open",
       reviewer: "u9", calendarSync: true, source: "manual", recurring: null,
       collaborators: [], createdBy: state.currentUser,
@@ -133,6 +158,7 @@
   // layer (src/remote.js) when another device's changes arrive via polling.
   function reloadTasks() {
     state.tasks = loadTasks();
+    if (dedupeIds(state.tasks)) saveTasks();
     emit("tasks:changed");
   }
 
