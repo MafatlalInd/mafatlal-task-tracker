@@ -200,15 +200,20 @@
         <div class="field-row">
           <div class="field"><label>Priority</label>
             <select class="select" id="f-priority">${FD.data.PRI.map((p) => `<option ${p === t.priority ? 'selected' : ''}>${p}</option>`).join('')}</select></div>
-          <div class="field"><label>Due date</label>
-            <input type="date" class="input" id="f-due" value="${t.due}"/></div>
-        </div>
-        <div class="field-row">
           <div class="field"><label>Status</label>
             <select class="select" id="f-status">${FD.data.STATUS.map((s) => `<option ${s === t.status ? 'selected' : ''}>${s}</option>`).join('')}</select></div>
-          <div class="field"><label>Progress: <span id="prog-val">${t.progress}%</span></label>
-            <input type="range" id="f-progress" min="0" max="100" step="5" value="${t.progress}" style="width:100%"/></div>
         </div>
+        <div class="field-row">
+          <div class="field"><label>Start date</label>
+            <input type="date" class="input" id="f-start" value="${t.start || ''}"/></div>
+          <div class="field"><label>Due date</label>
+            <input type="date" class="input" id="f-due" value="${t.due || ''}"/></div>
+          <div class="field"><label>End date</label>
+            <input type="date" class="input" id="f-end" value="${t.end || t.completedOn || ''}"/></div>
+        </div>
+        <div class="field">
+          <label>Progress: <span id="prog-val">${t.progress}%</span></label>
+          <input type="range" id="f-progress" min="0" max="100" step="5" value="${t.progress}" style="width:100%"/></div>
 
         <div class="field">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
@@ -307,7 +312,9 @@
       dept: pane.querySelector('#f-dept').value,
       project: pane.querySelector('#f-project').value || null,
       priority: pane.querySelector('#f-priority').value,
+      start: pane.querySelector('#f-start').value || null,
       due: pane.querySelector('#f-due').value,
+      end: pane.querySelector('#f-end').value || null,
       status: pane.querySelector('#f-status').value,
       progress: parseInt(pane.querySelector('#f-progress').value, 10),
       calendarSync: pane.querySelector('#f-calsync').checked,
@@ -342,7 +349,9 @@
     return {
       name: '', desc: '', assignee: FD.state.currentUser, reviewer: 'u9',
       dept: FD.userById(FD.state.currentUser).dept, project: null, priority: 'Medium',
+      start: FD.data.iso(FD.data.TODAY),
       due: FD.data.iso(new Date(FD.data.TODAY.getTime() + 5 * 86400000)),
+      end: null,
       status: 'Open', progress: 0, calendarSync: true, attachments: [], recurring: null, source: 'manual',
     };
   }
