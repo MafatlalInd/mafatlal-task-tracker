@@ -394,27 +394,106 @@
   }
   function wireEmpty(host, conn, root) { const b = host.querySelector('#emptyAdd'); if (b) b.onclick = () => manageModal(conn, root); UI.hydrateIcons(host); }
 
-  // ---- Search (Search Console, multi-site) ----
+  // ---- Search (Search Console, multi-site) — manual data entry ----
+  // Stored per-site in its own key (synced via the backend, separate from tasks).
+  const GSC_DATA_KEY = 'fd-mkt-gsc-data-v1';
+  function gscDataAll() { try { return JSON.parse(localStorage.getItem(GSC_DATA_KEY) || '{}'); } catch (e) { return {}; } }
+  function saveGscDataAll(d) { try { localStorage.setItem(GSC_DATA_KEY, JSON.stringify(d)); } catch (e) {} }
+
+  // Aggregate the entered numbers for the selected site (or all sites combined).
+  function gscMetrics() {
+    const data = gscDataAll(), sel = selected('gsc'), accs = accounts('gsc');
+    const ids = sel === 'all' ? accs.map((a) => a.id) : [sel];
+    let clicks = 0, impr = 0, posW = 0, posC = 0; const qmap = {};
+    ids.forEach((id) => {
+      const d = data[id]; if (!d) return;
+      clicks += +d.clicks || 0; impr += +d.impressions || 0;
+      const w = +d.impressions || 1;
+      if (+d.position) { posW += (+d.position) * w; posC += w; }
+      (d.queries || []).forEach((q) => {
+        const k = (q.q || '').toLowerCase(); if (!k) return;
+        const e = qmap[k] || (qmap[k] = { q: q.q, clicks: 0, impr: 0, posW: 0, posC: 0 });
+        e.clicks += +q.clicks || 0; e.impr += +q.impr || 0;
+        const qw = +q.impr || 1;
+        if (+q.pos) { e.posW += (+q.pos) * qw; e.posC += qw; }
+      });
+    });
+    const queries = Object.keys(qmap).map((k) => { const e = qmap[k]; return { q: e.q, clicks: e.clicks, impr: e.impr, pos: e.posC ? e.posW / e.posC : 0 }; }).sort((a, b) => b.clicks - a.clicks);
+    return { clicks, impr, ctr: impr ? (clicks / impr * 100) : 0, position: posC ? posW / posC : 0, queries };
+  }
+
   function search(root) {
     const host = root.querySelector('#anBody');
     if (!accounts('gsc').length) { host.innerHTML = emptyConnect('gsc', root); wireEmpty(host, 'gsc', root); return; }
-    const s = M.search, f = factor('gsc') * rangeFactor(), g = M.gscNum;
+    const m = gscMetrics(); const FLAT = { up: true, delta: '—' };
     host.innerHTML = acctSelector('gsc', root) + `
+      <div class="toolbar" style="margin-bottom:14px;justify-content:flex-end">
+        <button class="btn primary sm" id="gscEnter">${UI.icon('edit')} Enter data</button>
+      </div>
       <div class="grid kpi-grid" style="margin-bottom:16px">
-        ${kpi('Total Clicks', num(g.clicks * f), s.clicks, 'var(--mafatlal-red)')}
-        ${kpi('Impressions', kshort(g.impressions * f), s.impressions)}
-        ${kpi('Avg CTR', s.ctr.value, s.ctr)}
-        ${kpi('Avg Position', s.position.value, s.position, 'var(--ok)')}
+        ${kpi('Total Clicks', num(m.clicks), FLAT, 'var(--mafatlal-red)')}
+        ${kpi('Impressions', kshort(m.impr), FLAT)}
+        ${kpi('Avg CTR', m.impr ? m.ctr.toFixed(2) + '%' : '—', FLAT)}
+        ${kpi('Avg Position', m.position ? m.position.toFixed(1) : '—', FLAT, 'var(--ok)')}
       </div>
       <div class="card">
         <div class="card-head"><div><div class="card-title">Top Search Queries</div><div class="card-sub">${selected('gsc') === 'all' ? 'Combined across ' + accounts('gsc').length + ' sites' : (accounts('gsc').find((a) => a.id === selected('gsc')) || {}).name}</div></div></div>
-        <table class="tbl" style="border:0"><thead><tr><th>Query</th><th>Clicks</th><th>Impressions</th><th>Avg position</th></tr></thead><tbody>
-          ${s.queries.map((q) => `<tr><td class="t-name">${q.q}</td><td>${num(q.clicks * f)}</td><td>${num(q.impr * f)}</td>
-            <td><span class="badge" style="background:${q.pos <= 3 ? 'rgba(16,124,16,.12)' : q.pos <= 10 ? 'rgba(193,156,0,.13)' : 'rgba(209,52,56,.1)'};color:${q.pos <= 3 ? 'var(--ok)' : q.pos <= 10 ? 'var(--medium)' : 'var(--critical)'}">${q.pos.toFixed(1)}</span></td></tr>`).join('')}
-        </tbody></table>
+        ${m.queries.length ? `<table class="tbl" style="border:0"><thead><tr><th>Query</th><th>Clicks</th><th>Impressions</th><th>Avg position</th></tr></thead><tbody>
+          ${m.queries.map((q) => `<tr><td class="t-name">${q.q}</td><td>${num(q.clicks)}</td><td>${num(q.impr)}</td>
+            <td><span class="badge" style="background:${q.pos && q.pos <= 3 ? 'rgba(16,124,16,.12)' : q.pos && q.pos <= 10 ? 'rgba(193,156,0,.13)' : 'rgba(209,52,56,.1)'};color:${q.pos && q.pos <= 3 ? 'var(--ok)' : q.pos && q.pos <= 10 ? 'var(--medium)' : 'var(--critical)'}">${q.pos ? q.pos.toFixed(1) : '—'}</span></td></tr>`).join('')}
+        </tbody></table>` : `<div class="empty" style="padding:30px">${UI.icon('search')}<div>No data entered yet for this site.</div><div style="font-size:12px;margin-top:6px">Click <b>Enter data</b> to add clicks, impressions &amp; top queries.</div></div>`}
       </div>`;
     UI.hydrateIcons(host);
     wireSelector(root, 'gsc');
+    host.querySelector('#gscEnter').onclick = () => gscEntryModal(root);
+  }
+
+  function gscEntryModal(root) {
+    const accs = accounts('gsc');
+    if (!accs.length) { UI.toast({ title: 'Add a site first', kind: 'warn' }); return; }
+    const sel = selected('gsc');
+    const startId = (sel !== 'all' && accs.some((a) => a.id === sel)) ? sel : accs[0].id;
+    const data = gscDataAll();
+    const fill = (id) => { const d = data[id] || {}; return {
+      clicks: d.clicks != null ? d.clicks : '', impressions: d.impressions != null ? d.impressions : '',
+      position: d.position != null ? d.position : '',
+      queries: (d.queries || []).map((q) => [q.q, q.clicks, q.impr, q.pos].join(', ')).join('\n') }; };
+    const init = fill(startId);
+    UI.modal({
+      title: 'Enter Search Console data', width: 560,
+      body: `
+        <p class="muted" style="margin-top:0;font-size:13px;line-height:1.5">Type the numbers from your Google Search Console for this site. CTR is calculated automatically. Data is saved per site and shared with the team.</p>
+        <div class="field"><label>Site</label><select class="select" id="g-site" style="width:100%">${accs.map((a) => `<option value="${a.id}" ${a.id === startId ? 'selected' : ''}>${a.name}</option>`).join('')}</select></div>
+        <div class="field-row">
+          <div class="field"><label>Total Clicks</label><input class="input" type="number" id="g-clicks" value="${init.clicks}" placeholder="e.g. 1240" style="width:100%"/></div>
+          <div class="field"><label>Impressions</label><input class="input" type="number" id="g-impr" value="${init.impressions}" placeholder="e.g. 45000" style="width:100%"/></div>
+          <div class="field"><label>Avg Position</label><input class="input" type="number" step="0.1" id="g-pos" value="${init.position}" placeholder="e.g. 12.4" style="width:100%"/></div>
+        </div>
+        <div class="field"><label>Top queries <span class="muted">(one per line: query, clicks, impressions, position)</span></label>
+          <textarea id="g-queries" placeholder="mafatlal shirts, 120, 3400, 4.2&#10;mafatlal fabrics, 80, 2900, 6.1" style="min-height:120px">${init.queries}</textarea></div>`,
+      foot: `<button class="btn subtle" data-close>Cancel</button><button class="btn primary" id="g-save">${UI.icon('check')} Save data</button>`,
+      onMount: (m, close) => {
+        const siteSel = m.querySelector('#g-site');
+        siteSel.onchange = () => { const f = fill(siteSel.value); m.querySelector('#g-clicks').value = f.clicks; m.querySelector('#g-impr').value = f.impressions; m.querySelector('#g-pos').value = f.position; m.querySelector('#g-queries').value = f.queries; };
+        m.querySelector('#g-save').onclick = () => {
+          const id = siteSel.value;
+          const queries = (m.querySelector('#g-queries').value || '').split('\n').map((ln) => ln.trim()).filter(Boolean).map((ln) => {
+            const p = ln.split(',').map((x) => x.trim());
+            return { q: p[0], clicks: parseInt((p[1] || '').replace(/[^0-9]/g, ''), 10) || 0, impr: parseInt((p[2] || '').replace(/[^0-9]/g, ''), 10) || 0, pos: parseFloat(p[3]) || 0 };
+          }).filter((q) => q.q);
+          const d = gscDataAll();
+          d[id] = {
+            clicks: parseInt(String(m.querySelector('#g-clicks').value).replace(/[^0-9]/g, ''), 10) || 0,
+            impressions: parseInt(String(m.querySelector('#g-impr').value).replace(/[^0-9]/g, ''), 10) || 0,
+            position: parseFloat(m.querySelector('#g-pos').value) || 0,
+            queries,
+          };
+          saveGscDataAll(d);
+          UI.toast({ title: 'Data saved', sub: 'Search analytics updated', kind: 'ok', icon: 'check' });
+          close(); paintBody(root);
+        };
+      },
+    });
   }
 
   // ---- Campaigns ----
