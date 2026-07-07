@@ -214,6 +214,12 @@
           <div class="field"><label>End date</label>
             <input type="date" class="input" id="f-end" value="${t.end || t.completedOn || ''}"/></div>
         </div>
+        <div class="field-row">
+          <div class="field"><label>Hours needed to complete</label>
+            <input type="number" class="input" id="f-esth" min="0" step="0.5" value="${t.estHours != null && t.estHours !== 0 ? t.estHours : ''}" placeholder="e.g. 8"/></div>
+          <div class="field"><label>Hours spent so far</label>
+            <input type="number" class="input" id="f-hours" min="0" step="0.5" value="${t.hours != null && t.hours !== 0 ? t.hours : ''}" placeholder="e.g. 3.5"/></div>
+        </div>
         <div class="field">
           <label>Progress: <span id="prog-val">${t.progress}%</span></label>
           <input type="range" id="f-progress" min="0" max="100" step="5" value="${t.progress}" style="width:100%"/></div>
@@ -366,6 +372,8 @@
       start: pane.querySelector('#f-start').value || null,
       due: pane.querySelector('#f-due').value,
       end: pane.querySelector('#f-end').value || null,
+      estHours: parseFloat(pane.querySelector('#f-esth').value) || 0,
+      hours: parseFloat(pane.querySelector('#f-hours').value) || 0,
       status: pane.querySelector('#f-status').value,
       progress: parseInt(pane.querySelector('#f-progress').value, 10),
       calendarSync: pane.querySelector('#f-calsync').checked,
@@ -402,7 +410,7 @@
       dept: FD.userById(FD.state.currentUser).dept, project: null, priority: 'Medium',
       start: FD.data.iso(FD.data.TODAY),
       due: FD.data.iso(new Date(FD.data.TODAY.getTime() + 5 * 86400000)),
-      end: null,
+      end: null, estHours: 0, hours: 0,
       status: 'Open', progress: 0, steps: [], calendarSync: true, attachments: [], recurring: null, source: 'manual',
     };
   }
