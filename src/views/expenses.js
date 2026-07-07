@@ -90,10 +90,10 @@
       <div class="page">
         <div class="page-head">
           <div><h1 class="page-title">${UI.icon('report')} Marketing Expenses</h1>
-            <div class="page-sub">Monthly spend by division &amp; cost head${FD.isAdmin() ? '' : ' · view only'}</div></div>
+            <div class="page-sub">Monthly spend by division &amp; cost head</div></div>
           <div class="page-actions">
             ${periodCtrl}
-            ${FD.isAdmin() ? `<button class="btn primary" id="addExp">${UI.icon('add')} Add expense</button>` : ''}
+            <button class="btn primary" id="addExp">${UI.icon('add')} Add expense</button>
             <button class="btn" id="expExport">${UI.icon('download')} Export CSV</button>
           </div>
         </div>
@@ -117,7 +117,7 @@
   }
 
   function paint(root) {
-    const admin = FD.isAdmin(), editable = admin && !rangeMode;
+    const editable = !rangeMode;   // any signed-in user can edit a single month
     const segs = DIVS.map((d) => ({ value: gDivTotal(d.id), color: d.color })).filter((s) => s.value > 0);
 
     const numCell = (div, key) => editable
@@ -173,7 +173,6 @@
 
   // Add a single expense to a division / cost head / month
   function addExpenseModal(root) {
-    if (!FD.isAdmin()) { UI.toast({ title: 'Admins only', kind: 'err' }); return; }
     const defMonth = rangeMode ? rangeTo : month;
     UI.modal({
       title: 'Add expense', width: 480,
