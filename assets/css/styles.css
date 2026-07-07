@@ -477,6 +477,21 @@ a { color: inherit; text-decoration: none; cursor: pointer; }
 .exp-table tfoot .exp-total td { background: var(--bg-selected); border-top: 2px solid var(--stroke-2); font-size: 13.5px; }
 .exp-table tfoot .exp-total td:first-child { background: var(--bg-selected); }
 
+/* ---- Task steps / checklist ---- */
+.steps-box { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.steps-empty { color: var(--text-3); font-size: 12.5px; padding: 6px 2px; }
+.steps-progress { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); margin-bottom: 6px; }
+.steps-progress .steps-bar { flex: 1; height: 6px; border-radius: 4px; background: var(--bg-surface-2); overflow: hidden; }
+.steps-progress .steps-bar i { display: block; height: 100%; background: var(--ok); transition: width .2s ease; }
+.step-item { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 6px; }
+.step-item:hover { background: var(--bg-surface-2); }
+.step-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--ok); flex-shrink: 0; cursor: pointer; }
+.step-item .step-text { flex: 1; font-size: 13.5px; color: var(--text); word-break: break-word; }
+.step-item.done .step-text { text-decoration: line-through; color: var(--text-3); }
+.step-item .step-del { color: var(--text-3); opacity: 0; width: 24px; height: 24px; flex-shrink: 0; }
+.step-item:hover .step-del { opacity: 1; }
+.step-add { display: flex; gap: 8px; align-items: center; }
+
 /* ---------- Voice input mic button ---------- */
 .mic-btn { width: 34px; height: 34px; border: 1px solid var(--stroke-2); background: var(--bg-surface); color: var(--text-2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
 .mic-btn:hover { color: var(--mafatlal-red); border-color: var(--mafatlal-red); }
