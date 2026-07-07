@@ -12,6 +12,9 @@
     const admin = FD.isAdmin();
     const scopeTasks = admin ? FD.state.tasks : FD.myTasks();
     const m = FD.metrics(scopeTasks);
+    const hoursLogged = scopeTasks.reduce((s, t) => s + (Number(t.hours) || 0), 0);
+    const hoursEst = scopeTasks.reduce((s, t) => s + (Number(t.estHours) || 0), 0);
+    const fmtH = (h) => (Math.round(h * 10) / 10) + 'h';
     const depts = FD.deptStats();
     const workload = FD.workloadByUser();
     const myMeetings = FD.data.meetings.filter((mt) => (mt.attendees || []).indexOf(me.id) > -1 || mt.organizer === me.id);
@@ -102,6 +105,7 @@
             <div class="divider"></div>
             <div class="stat-line"><span class="muted">${admin ? 'Approvals pending' : 'Awaiting approval'}</span><b>${m.waiting}</b></div>
             <div class="stat-line"><span class="muted">Completion rate</span><b>${m.completionRate}%</b></div>
+            <div class="stat-line"><span class="muted">Hours logged</span><b>${fmtH(hoursLogged)}${hoursEst ? ` <span class="muted" style="font-weight:400">/ ${fmtH(hoursEst)} est</span>` : ''}</b></div>
             <div class="stat-line"><span class="muted">Overdue tasks</span><b style="color:var(--critical)">${m.delayed}</b></div>
           </div>
         </div>
@@ -162,13 +166,14 @@
         <button class="btn subtle sm" id="viewTeam">Open Team ${UI.icon('chevronR')}</button>
       </div>
       <table class="tbl" style="border:0">
-        <thead><tr><th>Member</th><th>Department</th><th>Active</th><th>Completed</th><th>Overdue</th><th>Avg progress</th><th></th></tr></thead>
+        <thead><tr><th>Member</th><th>Department</th><th>Active</th><th>Completed</th><th>Overdue</th><th>Hours</th><th>Avg progress</th><th></th></tr></thead>
         <tbody>
           ${members.map((mem) => {
             const tks = FD.myTasks(mem.id);
             const active = tks.filter((t) => t.status !== 'Completed');
             const overdue = active.filter((t) => FD.isOverdue(t)).length;
             const done = tks.filter((t) => t.status === 'Completed').length;
+            const hrs = tks.reduce((s, t) => s + (Number(t.hours) || 0), 0);
             const avg = active.length ? Math.round(active.reduce((s, t) => s + (t.progress || 0), 0) / active.length) : 0;
             return `<tr>
               <td><div style="display:flex;align-items:center;gap:8px">${UI.avatar(mem.id, 'sm')}<b>${mem.name}</b></div></td>
@@ -176,6 +181,7 @@
               <td>${active.length}</td>
               <td>${done}</td>
               <td>${overdue ? `<span style="color:var(--critical);font-weight:600">${overdue}</span>` : '0'}</td>
+              <td>${hrs ? (Math.round(hrs * 10) / 10) + 'h' : '—'}</td>
               <td><div style="display:flex;align-items:center;gap:8px"><div class="progress-bar" style="width:90px"><i style="width:${avg}%"></i></div><span class="muted" style="font-size:11px">${avg}%</span></div></td>
               <td><button class="btn sm" data-assign="${mem.id}">${UI.icon('add')} Assign</button></td>
             </tr>`;
