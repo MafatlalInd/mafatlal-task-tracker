@@ -4,6 +4,9 @@
 (function () {
   const FD = window.FD;
 
+  // Escape user-entered text before putting it in innerHTML.
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
   // ---------- Icons (Fluent-style line icons) ----------
   // Clean, consistent line-icons (Lucide-style, 24px grid). Rendered medium-small.
   const P = {
@@ -215,7 +218,14 @@
           <label>Progress: <span id="prog-val">${t.progress}%</span></label>
           <input type="range" id="f-progress" min="0" max="100" step="5" value="${t.progress}" style="width:100%"/></div>
 
-        <div class="field">
+        <div class="pane-section-title">Steps <span class="muted" style="font-weight:400;font-size:12px">— break the task down to track where it stands</span></div>
+        <div class="steps-box" id="f-steps"></div>
+        <div class="step-add">
+          <input class="control" id="stepInput" placeholder="Add a step and press Enter…" style="flex:1"/>
+          <button class="btn subtle sm" id="stepAdd" type="button">${icon('add')} Add</button>
+        </div>
+
+        <div class="field" style="margin-top:16px">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
             <input type="checkbox" id="f-calsync" ${t.calendarSync ? 'checked' : ''} style="accent-color:var(--ms-blue)"/>
             ${icon('calendar')} Sync deadline to Outlook Calendar</label>
@@ -303,7 +313,48 @@
     });
     const collectCollab = () => Array.from(pane.querySelectorAll('#f-collab .collab-chip.on')).map((c) => c.getAttribute('data-uid'));
 
+    // ----- Steps / checklist -----
+    let steps = Array.isArray(t.steps) ? t.steps.map((s) => ({ text: s.text, done: !!s.done })) : [];
+    const stepsBox = pane.querySelector('#f-steps');
+    function syncProgressToSteps() {
+      if (!steps.length) return;
+      const p = Math.round(steps.filter((s) => s.done).length / steps.length * 100);
+      const prog = pane.querySelector('#f-progress'), pv = pane.querySelector('#prog-val');
+      if (prog) { prog.value = p; if (pv) pv.textContent = prog.value + '%'; }  // read back the slider's snapped value so label = saved
+      else if (pv) pv.textContent = p + '%';
+    }
+    function renderSteps() {
+      const done = steps.filter((s) => s.done).length;
+      if (!steps.length) {
+        stepsBox.innerHTML = `<div class="steps-empty">No steps yet — add the stages to see where this task stands.</div>`;
+      } else {
+        stepsBox.innerHTML =
+          `<div class="steps-progress"><b>${done}/${steps.length}</b> done<div class="steps-bar"><i style="width:${Math.round(done / steps.length * 100)}%"></i></div></div>` +
+          steps.map((s, i) => `<div class="step-item ${s.done ? 'done' : ''}">
+            <input type="checkbox" data-si="${i}" ${s.done ? 'checked' : ''}/>
+            <span class="step-text">${esc(s.text)}</span>
+            <button class="icon-btn step-del" type="button" data-si="${i}" title="Remove step">${icon('close')}</button>
+          </div>`).join('');
+        hydrateIcons(stepsBox);
+      }
+      stepsBox.querySelectorAll('input[type=checkbox][data-si]').forEach((c) => c.onchange = () => {
+        steps[+c.getAttribute('data-si')].done = c.checked;
+        syncProgressToSteps();
+        renderSteps();
+      });
+      stepsBox.querySelectorAll('.step-del').forEach((b) => b.onclick = () => { steps.splice(+b.getAttribute('data-si'), 1); syncProgressToSteps(); renderSteps(); });
+    }
+    renderSteps();
+    function addStep() {
+      const inp = pane.querySelector('#stepInput'); const v = (inp.value || '').trim();
+      if (!v) return;
+      steps.push({ text: v, done: false }); inp.value = ''; renderSteps(); inp.focus();
+    }
+    pane.querySelector('#stepAdd').onclick = addStep;
+    pane.querySelector('#stepInput').onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); addStep(); } };
+
     const collect = () => ({
+      steps: steps,
       name: isNew ? (pane.querySelector('#f-name').value || 'Untitled task') : t.name,
       desc: pane.querySelector('#f-desc').value,
       assignee: pane.querySelector('#f-assignee').value,
@@ -352,7 +403,7 @@
       start: FD.data.iso(FD.data.TODAY),
       due: FD.data.iso(new Date(FD.data.TODAY.getTime() + 5 * 86400000)),
       end: null,
-      status: 'Open', progress: 0, calendarSync: true, attachments: [], recurring: null, source: 'manual',
+      status: 'Open', progress: 0, steps: [], calendarSync: true, attachments: [], recurring: null, source: 'manual',
     };
   }
 
