@@ -3,8 +3,9 @@
    Anchored to a fixed "today" so the demo is reproducible.
    ============================================================ */
 (function () {
-  // Fixed reference date for a stable demo (matches product brief).
-  const TODAY = new Date(2026, 5, 12); // 2026-06-12 (months are 0-based)
+  // "Today" = the real current date (local midnight), so the calendar,
+  // dashboard and due-date math always track the actual day/month.
+  const TODAY = (function () { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); })();
   const day = 86400000;
   const d = (offsetDays) => new Date(TODAY.getTime() + offsetDays * day);
   // Local-date ISO (YYYY-MM-DD) — avoids the UTC day-shift that toISOString
